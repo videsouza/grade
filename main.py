@@ -1,8 +1,25 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from ortools.sat.python import cp_model
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os
 
 app = FastAPI()
+
+# 1. SERVIR ARQUIVOS ESTÁTICOS (JS e CSS)
+# Isso permite que seu HTML encontre seus arquivos de script e estilo
+app.mount("/js", StaticFiles(directory="js"), name="js")
+app.mount("/css", StaticFiles(directory="css"), name="css")
+
+# 2. ROTA RAIZ (Quando alguém acessa o site sem nada na frente)
+@app.get("/")
+def read_root():
+    return FileResponse("index.html")
+
+# --- MANTENHA A SUA ROTA DE API ABAIXO ---
+# ... (seu código da função gerar_grade aqui) ...
 
 class PayloadGrade(BaseModel):
     cenario: dict
