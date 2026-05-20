@@ -188,6 +188,7 @@ function salvarPasso2() {
     }
 
     console.log("Passo 2 Salvo - Turmas vinculadas:", estadoGlobal.turmas_selecionadas);
+    carregarSelectsMatriz();
     nextStep(3);
 }
 
