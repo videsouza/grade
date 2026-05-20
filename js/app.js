@@ -1,3 +1,9 @@
+// ============================================================================
+// 1. VARIÁVEIS GLOBAIS E NAVEGAÇÃO
+// ============================================================================
+
+let currentStep = 1;
+
 // O "pacote" que vai acumular todos os dados
 const estadoGlobal = {
     cenario: { nome: "", dias_semana: [], periodos: [] },
@@ -6,7 +12,32 @@ const estadoGlobal = {
     disponibilidades_professores: []
 };
 
-// Controle de Períodos Dinâmicos
+function updateStepper(step) {
+    document.querySelectorAll('.step-indicator').forEach(el => el.classList.remove('active'));
+    const indicadorAtual = document.getElementById(`ind-${step}`);
+    if (indicadorAtual) {
+        indicadorAtual.classList.add('active');
+    }
+}
+
+function nextStep(step) {
+    document.getElementById(`step${currentStep}`).classList.remove('active');
+    currentStep = step;
+    document.getElementById(`step${currentStep}`).classList.add('active');
+    updateStepper(step);
+}
+
+function prevStep(step) {
+    document.getElementById(`step${currentStep}`).classList.remove('active');
+    currentStep = step;
+    document.getElementById(`step${currentStep}`).classList.add('active');
+    updateStepper(step);
+}
+
+// ============================================================================
+// 2. LÓGICA DA TELA 1 (CENÁRIO)
+// ============================================================================
+
 let contadorPeriodos = 0;
 
 function adicionarPeriodo(inicio = "", fim = "") {
@@ -23,7 +54,7 @@ function adicionarPeriodo(inicio = "", fim = "") {
     tbody.appendChild(tr);
 }
 
-// Inicializa a tela com 5 aulas padrão para facilitar a vida do usuário
+// Quando a página carrega, insere os 5 horários padrão da manhã
 window.onload = () => {
     adicionarPeriodo("07:00", "07:50");
     adicionarPeriodo("07:50", "08:40");
@@ -32,7 +63,6 @@ window.onload = () => {
     adicionarPeriodo("10:35", "11:25");
 };
 
-// Quando clica em "Avançar" na Tela 1
 function salvarPasso1() {
     const nome = document.getElementById('nomeCenario').value;
     if (!nome) {
@@ -40,7 +70,6 @@ function salvarPasso1() {
         return;
     }
 
-    // Coleta os dias marcados
     const checkboxes = document.querySelectorAll('input[name="dias"]:checked');
     const dias = Array.from(checkboxes).map(cb => parseInt(cb.value));
     
@@ -49,7 +78,6 @@ function salvarPasso1() {
         return;
     }
 
-    // Coleta os períodos
     const linhas = document.querySelectorAll('#listaPeriodos tr');
     const periodos = [];
     
@@ -63,18 +91,19 @@ function salvarPasso1() {
         });
     });
 
-    // Salva no nosso pacote global
     estadoGlobal.cenario.nome = nome;
     estadoGlobal.cenario.dias_semana = dias;
     estadoGlobal.cenario.periodos = periodos;
 
     console.log("Passo 1 Salvo:", estadoGlobal.cenario);
-    
-    // Avança visualmente para a Tela 2
     nextStep(2);
 }
 
-// Simulação de turmas cadastradas no banco de dados (Secretaria)
+// ============================================================================
+// 3. LÓGICA DA TELA 2 (TURMAS)
+// ============================================================================
+
+// Simulação do Banco de Dados (Secretaria)
 const bancoTurmasMock = [
     { id: 101, nome: "6º Ano A (Manhã)" },
     { id: 102, nome: "6º Ano B (Manhã)" },
@@ -85,9 +114,8 @@ const bancoTurmasMock = [
 
 function abrirModalTurmas() {
     const select = document.getElementById('selectTurmasDisponiveis');
-    select.innerHTML = ''; // Limpa antes de renderizar
+    select.innerHTML = ''; 
     
-    // Filtra para mostrar apenas turmas que ainda NÃO foram adicionadas ao cenário
     const filtradas = bancoTurmasMock.filter(bt => !estadoGlobal.turmas_selecionadas.includes(bt.id));
     
     if (filtradas.length === 0) {
@@ -114,15 +142,12 @@ function confirmarInclusaoTurma() {
         return;
     }
 
-    // Adiciona o ID ao array global
     estadoGlobal.turmas_selecionadas.push(idSelecionado);
-    
     fecharModalTurmas();
     renderizarTabelaTurmas();
 }
 
 function removerTurmaCenario(id) {
-    // Remove do array global
     estadoGlobal.turmas_selecionadas = estadoGlobal.turmas_selecionadas.filter(tId => tId !== id);
     renderizarTabelaTurmas();
 }
@@ -137,9 +162,8 @@ function renderizarTabelaTurmas() {
         return;
     }
 
-    msgValidacao.style.display = 'none'; // Oculta o erro caso tenha itens
+    msgValidacao.style.display = 'none'; 
 
-    // Varre as turmas selecionadas buscando os nomes no nosso Mock
     estadoGlobal.turmas_selecionadas.forEach(id => {
         const dadosTurma = bancoTurmasMock.find(bt => bt.id === id);
         if (dadosTurma) {
@@ -164,94 +188,13 @@ function salvarPasso2() {
     }
 
     console.log("Passo 2 Salvo - Turmas vinculadas:", estadoGlobal.turmas_selecionadas);
-    nextStep(3); // Vai para a matriz curricular
+    nextStep(3);
 }
 
-// (Mantenha as funções nextStep, prevStep e updateStepper que já estavam aqui)
-
-let currentStep = 1;
-
-let currentStep = 1;
-
-// Função exclusiva para pintar o menu lá de cima
-function updateStepper(step) {
-    // 1. Tira a cor azul de todas as abas
-    document.querySelectorAll('.step-indicator').forEach(el => {
-        el.classList.remove('active');
-    });
-    
-    // 2. Coloca a cor azul apenas na aba atual
-    const indicadorAtual = document.getElementById(`ind-${step}`);
-    if (indicadorAtual) {
-        indicadorAtual.classList.add('active');
-    }
-}
-
-// Função para avançar de tela
-function nextStep(step) {
-    // Esconde a tela atual
-    document.getElementById(`step${currentStep}`).classList.remove('active');
-    // Atualiza o número do passo
-    currentStep = step;
-    // Mostra a nova tela
-    document.getElementById(`step${currentStep}`).classList.add('active');
-    // Atualiza o menu superior
-    updateStepper(step);
-}
-
-// Função para voltar de tela
-function prevStep(step) {
-    // Esconde a tela atual
-    document.getElementById(`step${currentStep}`).classList.remove('active');
-    // Atualiza o número do passo
-    currentStep = step;
-    // Mostra a nova tela
-    document.getElementById(`step${currentStep}`).classList.add('active');
-    // Atualiza o menu superior
-    updateStepper(step);
-}
+// ============================================================================
+// 4. LÓGICA FINAL (GERAR GRADE)
+// ============================================================================
 
 async function gerarGradeFinal() {
-    // Mantém o código do fetch que já criamos
-    alert("Iniciando processamento no backend...");
-}
-
-function nextStep(step) {
-    document.getElementById(`step${currentStep}`).style.display = 'none';
-    currentStep = step;
-    document.getElementById(`step${currentStep}`).style.display = 'block';
-}
-
-function prevStep(step) {
-    document.getElementById(`step${currentStep}`).style.display = 'none';
-    currentStep = step;
-    document.getElementById(`step${currentStep}`).style.display = 'block';
-}
-
-async function gerarGradeFinal() {
-    // Aqui você coletaria os dados de todos os steps
-    const payload = {
-        cenario: { dias_semana: [1, 2, 3, 4, 5], periodos: [{ordem: 1}, {ordem: 2}] },
-        turmas_selecionadas: [1],
-        matrizes_curriculares: [{ turma_id: 1, disciplina_id: 1, professor_id: 1, carga_horaria: 2 }],
-        disponibilidades_professores: []
-    };
-
-    try {
-        const response = await fetch("/api/gerar-grade", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        });
-        
-        const data = await response.json();
-        if (data.status === "sucesso") {
-            alert("Grade gerada! Verifique o console.");
-            console.log(data.grade);
-        } else {
-            alert("Erro: " + data.mensagem);
-        }
-    } catch (e) {
-        alert("Erro ao conectar no servidor");
-    }
+    alert("Função de gerar grade acionada! O backend será chamado aqui.");
 }
