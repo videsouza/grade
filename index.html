@@ -27,10 +27,38 @@
             <h2>Configuração do Cenário</h2>
             <div class="form-group">
                 <label for="nomeCenario">Nome do Cenário</label>
-                <input type="text" id="nomeCenario" placeholder="Ex: Grade Padrão 2026">
+                <input type="text" id="nomeCenario" placeholder="Ex: Grade Padrão Fundamental II">
             </div>
-            <div class="actions right">
-                <button class="btn-primary" onclick="nextStep(2)">Avançar</button>
+
+            <div class="form-group mt-20">
+                <label>Dias da Semana de Operação</label>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" name="dias" value="1" checked> Segunda-feira</label>
+                    <label><input type="checkbox" name="dias" value="2" checked> Terça-feira</label>
+                    <label><input type="checkbox" name="dias" value="3" checked> Quarta-feira</label>
+                    <label><input type="checkbox" name="dias" value="4" checked> Quinta-feira</label>
+                    <label><input type="checkbox" name="dias" value="5" checked> Sexta-feira</label>
+                </div>
+            </div>
+
+            <div class="form-group mt-20">
+                <label>Períodos (Horários de Aula)</label>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Ordem</th>
+                            <th>Horário de Início</th>
+                            <th>Horário de Término</th>
+                        </tr>
+                    </thead>
+                    <tbody id="listaPeriodos">
+                        </tbody>
+                </table>
+                <button class="btn-outline mt-20" onclick="adicionarPeriodo()">+ Adicionar Período</button>
+            </div>
+
+            <div class="actions right mt-20">
+                <button class="btn-primary" onclick="salvarPasso1()">Avançar</button>
             </div>
         </div>
 
