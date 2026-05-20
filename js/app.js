@@ -324,9 +324,123 @@ function salvarPasso3() {
 }
 
 // ============================================================================
-// 4. LÓGICA FINAL (GERAR GRADE)
+// 4. LÓGICA DA TELA 4 E ENVIO PARA O BACKEND
 // ============================================================================
 
+const nomesDias = {1: "Segunda", 2: "Terça", 3: "Quarta", 4: "Quinta", 5: "Sexta", 6: "Sábado", 7: "Domingo"};
+
+function prepararTela4() {
+    const select = document.getElementById('selectProfDisponibilidade');
+    select.innerHTML = '';
+    
+    // Pega apenas os professores que foram utilizados na matriz curricular (Passo 3)
+    const profsNaMatriz = [...new Set(estadoGlobal.matrizes_curriculares.map(m => m.professor_id))];
+    
+    if (profsNaMatriz.length === 0) {
+        select.innerHTML = '<option value="">Nenhum professor na matriz</option>';
+        document.getElementById('containerGradeDisponibilidade').innerHTML = '';
+        return;
+    }
+
+    profsNaMatriz.forEach(id => {
+        const prof = bancoProfessoresMock.find(p => p.id === id);
+        if (prof) select.innerHTML += `<option value="${prof.id}">${prof.nome}</option>`;
+    });
+
+    // Desenha a grade para o primeiro professor da lista
+    mudarProfessorDisponibilidade();
+}
+
+function mudarProfessorDisponibilidade() {
+    const profId = parseInt(document.getElementById('selectProfDisponibilidade').value);
+    if (!profId) return;
+    desenharGradeDisponibilidade(profId);
+}
+
+function desenharGradeDisponibilidade(profId) {
+    const container = document.getElementById('containerGradeDisponibilidade');
+    const dias = estadoGlobal.cenario.dias_semana;
+    const periodos = estadoGlobal.cenario.periodos;
+
+    let html = '<table class="data-table tabela-interativa"><thead><tr><th>Horário</th>';
+    
+    dias.forEach(dia => { html += `<th>${nomesDias[dia] || 'Dia '+dia}</th>`; });
+    html += '</tr></thead><tbody>';
+
+    periodos.forEach(periodo => {
+        html += `<tr><td><strong>${periodo.ordem}ª Aula</strong><br><small>${periodo.inicio} - ${periodo.fim}</small></td>`;
+        
+        dias.forEach(dia => {
+            // Verifica se este bloco já está marcado como indisponível no estado global
+            let bloqueado = false;
+            const profDisp = estadoGlobal.disponibilidades_professores.find(dp => dp.professor_id === profId);
+            if (profDisp) {
+                bloqueado = profDisp.indisponibilidades.some(ind => ind.dia === dia && ind.periodo === periodo.ordem);
+            }
+            
+            const classe = bloqueado ? 'celula-horario bloqueado' : 'celula-horario';
+            const texto = bloqueado ? 'Indisponível' : 'Livre';
+            
+            html += `<td class="${classe}" onclick="toggleDisponibilidade(this, ${profId}, ${dia}, ${periodo.ordem})">${texto}</td>`;
+        });
+        html += '</tr>';
+    });
+    
+    html += '</tbody></table>';
+    container.innerHTML = html;
+}
+
+function toggleDisponibilidade(celula, profId, dia, periodo) {
+    let profDisp = estadoGlobal.disponibilidades_professores.find(dp => dp.professor_id === profId);
+    if (!profDisp) {
+        profDisp = { professor_id: profId, indisponibilidades: [] };
+        estadoGlobal.disponibilidades_professores.push(profDisp);
+    }
+
+    const indexBloqueio = profDisp.indisponibilidades.findIndex(ind => ind.dia === dia && ind.periodo === periodo);
+
+    if (indexBloqueio >= 0) {
+        // Estava bloqueado -> Fica Livre
+        profDisp.indisponibilidades.splice(indexBloqueio, 1);
+        celula.classList.remove('bloqueado');
+        celula.innerText = 'Livre';
+    } else {
+        // Estava livre -> Fica Bloqueado
+        profDisp.indisponibilidades.push({ dia: dia, periodo: periodo, tipo: "Indisponível" });
+        celula.classList.add('bloqueado');
+        celula.innerText = 'Indisponível';
+    }
+}
+
+// O GRANDE MOMENTO: Envio para o Python
 async function gerarGradeFinal() {
-    alert("Função de gerar grade acionada! O backend será chamado aqui.");
+    const btn = document.getElementById('btnFinalizar');
+    const textoOriginal = btn.innerText;
+    btn.innerText = "Calculando Matemática... Aguarde";
+    btn.disabled = true;
+
+    try {
+        console.log("Enviando pacote para o servidor:", estadoGlobal);
+        
+        const response = await fetch("/api/gerar-grade", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(estadoGlobal)
+        });
+
+        const data = await response.json();
+
+        if (data.status === "sucesso") {
+            alert(`SISTEMA FINALIZADO! Grade gerada com sucesso (${data.total_aulas_alocadas} aulas alocadas). Verifique o console do navegador!`);
+            console.log("RESULTADO FINAL DA GRADE:", data.grade);
+        } else {
+            alert("O algoritmo não conseguiu fechar a grade. Motivo: " + data.mensagem);
+        }
+    } catch (error) {
+        console.error("Erro na requisição:", error);
+        alert("Erro de comunicação com o servidor.");
+    } finally {
+        btn.innerText = textoOriginal;
+        btn.disabled = false;
+    }
 }
