@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Gerador de Grade Escolar</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <h1>Sistema de Grade Escolar</h1>
+        
+        <div id="step1" class="step">
+            <h2>1. Grade de Horários</h2>
+            <input type="text" id="nomeCenario" placeholder="Nome do Cenário">
+            <button onclick="nextStep(2)">Avançar</button>
+        </div>
+
+        <div id="step2" class="step" style="display:none;">
+            <h2>2. Seleção de Turmas</h2>
+            <button onclick="prevStep(1)">Voltar</button>
+            <button onclick="nextStep(3)">Avançar</button>
+        </div>
+
+        <div id="step3" class="step" style="display:none;">
+            <h2>3. Disciplinas e Professores</h2>
+            <button onclick="prevStep(2)">Voltar</button>
+            <button onclick="nextStep(4)">Avançar</button>
+        </div>
+
+        <div id="step4" class="step" style="display:none;">
+            <h2>4. Disponibilidade</h2>
+            <button onclick="prevStep(3)">Voltar</button>
+            <button id="btnFinalizar" onclick="gerarGradeFinal()">Finalizar e Gerar</button>
+        </div>
+    </div>
+    <script src="js/app.js"></script>
+</body>
+</html>
