@@ -2,37 +2,92 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Gerador de Grade Escolar</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Grade Escolar</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <div id="app">
-        <h1>Sistema de Grade Escolar</h1>
-        
-        <div id="step1" class="step">
-            <h2>1. Grade de Horários</h2>
-            <input type="text" id="nomeCenario" placeholder="Nome do Cenário">
-            <button onclick="nextStep(2)">Avançar</button>
+    <header class="main-header">
+        <div class="header-content">
+            <h1>SEC. MUNICIPAL DE EDUCAÇÃO</h1>
+            <span class="department">ARQUIVO / SEC</span>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="stepper">
+            <div class="step-indicator active" id="ind-1">1. Grade de Horários</div>
+            <div class="step-indicator" id="ind-2">2. Turmas</div>
+            <div class="step-indicator" id="ind-3">3. Disciplinas da Turma</div>
+            <div class="step-indicator" id="ind-4">4. Disponibilidade</div>
         </div>
 
-        <div id="step2" class="step" style="display:none;">
-            <h2>2. Seleção de Turmas</h2>
-            <button onclick="prevStep(1)">Voltar</button>
-            <button onclick="nextStep(3)">Avançar</button>
+        <div id="step1" class="step-content active">
+            <h2>Configuração do Cenário</h2>
+            <div class="form-group">
+                <label for="nomeCenario">Nome do Cenário</label>
+                <input type="text" id="nomeCenario" placeholder="Ex: Grade Padrão 2026">
+            </div>
+            <div class="actions right">
+                <button class="btn-primary" onclick="nextStep(2)">Avançar</button>
+            </div>
         </div>
 
-        <div id="step3" class="step" style="display:none;">
-            <h2>3. Disciplinas e Professores</h2>
-            <button onclick="prevStep(2)">Voltar</button>
-            <button onclick="nextStep(4)">Avançar</button>
+        <div id="step2" class="step-content">
+            <h2>Seleção de Turmas</h2>
+            <div class="actions right">
+                <button class="btn-secondary">+ Nova Turma</button>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Turma</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="2" class="empty-state">Nenhum registro encontrado</td></tr>
+                </tbody>
+            </table>
+            <div class="actions between mt-20">
+                <button class="btn-outline" onclick="prevStep(1)">Voltar</button>
+                <button class="btn-primary" onclick="nextStep(3)">Avançar</button>
+            </div>
         </div>
 
-        <div id="step4" class="step" style="display:none;">
-            <h2>4. Disponibilidade</h2>
-            <button onclick="prevStep(3)">Voltar</button>
-            <button id="btnFinalizar" onclick="gerarGradeFinal()">Finalizar e Gerar</button>
+        <div id="step3" class="step-content">
+            <h2>Disciplinas e Professores</h2>
+            <div class="form-grid">
+                <div class="form-group"><label>Turma</label><select><option>Selecione</option></select></div>
+                <div class="form-group"><label>Disciplina</label><select><option>Selecione</option></select></div>
+                <div class="form-group"><label>Professor</label><select><option>Selecione</option></select></div>
+            </div>
+            <div class="actions between mt-20">
+                <button class="btn-outline" onclick="prevStep(2)">Voltar</button>
+                <button class="btn-primary" onclick="nextStep(4)">Avançar</button>
+            </div>
         </div>
-    </div>
+
+        <div id="step4" class="step-content">
+            <h2>Disponibilidade dos Professores</h2>
+            <div class="form-group">
+                <label>Selecione o Professor</label>
+                <select><option>João (Matemática)</option></select>
+            </div>
+            <div class="grid-placeholder">Grade de horários interativa entrará aqui</div>
+            
+            <div class="actions between mt-20">
+                <button class="btn-outline" onclick="prevStep(3)">Voltar</button>
+                <button class="btn-success" id="btnFinalizar" onclick="gerarGradeFinal()">Finalizar e Gerar Grade</button>
+            </div>
+        </div>
+    </main>
+
+    <footer class="main-footer">
+        <p>Desenvolvido por Vinicius A. de Souza</p>
+    </footer>
+
     <script src="js/app.js"></script>
 </body>
 </html>
