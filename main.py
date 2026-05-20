@@ -75,43 +75,30 @@ def gerar_grade(dados: PayloadGrade):
                 if dia_bloqueado in dias and periodo_bloqueado in periodos:
                     modelo.Add(variaveis[(turma_id, index_matriz, dia_bloqueado, periodo_bloqueado)] == 0)
 
-
-
     # R5: Máximo de aulas por dia (NMAP)
     for index_matriz, matriz in enumerate(dados.matrizes_curriculares):
         turma_id = matriz["turma_id"]
-        # Pega o valor do JSON. Se não existir no JSON por algum motivo, assume 2 como padrão.
         max_por_dia = matriz.get("max_aulas_dia", 2) 
         
         for dia in dias:
-            # Pega todas as variáveis dessa disciplina, mas APENAS as desse dia específico
             aulas_neste_dia = [
                 variaveis[(turma_id, index_matriz, dia, periodo)]
                 for periodo in periodos
             ]
-            # A soma das aulas no dia não pode passar do limite
             modelo.Add(sum(aulas_neste_dia) <= max_por_dia)
 
-
-
-    
     # ====================================================================
     # 3. O SOLVER (Processamento e Extração)
     # ====================================================================
     
     solver = cp_model.CpSolver()
-    
-    # Damos um limite de 60 segundos para não derrubar o servidor caso a grade seja matematicamente impossível
     solver.parameters.max_time_in_seconds = 60.0 
     
-    # Manda o Google processar!
     status = solver.Solve(modelo)
     
-    # Verifica se ele achou uma solução
     if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
         grade_final = []
         
-        # Vamos ler as variáveis. Apenas as que o algoritmo marcou com "1" entram na grade
         for (turma_id, index_matriz, dia, periodo), var in variaveis.items():
             if solver.Value(var) == 1:
                 matriz = dados.matrizes_curriculares[index_matriz]
@@ -130,7 +117,6 @@ def gerar_grade(dados: PayloadGrade):
             "grade": grade_final
         }
     else:
-        # Se o sistema tentar e não conseguir fechar o quebra-cabeça
         return {
             "status": "erro", 
             "mensagem": "Inviável. O algoritmo não conseguiu encontrar uma combinação possível com as regras atuais."
