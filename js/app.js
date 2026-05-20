@@ -1,5 +1,31 @@
 let currentStep = 1;
 
+function updateStepper(step) {
+    // Remove classe ativa de todos
+    document.querySelectorAll('.step-indicator').forEach(el => el.classList.remove('active'));
+    // Adiciona classe ativa no passo atual
+    document.getElementById(`ind-${step}`).classList.add('active');
+}
+
+function nextStep(step) {
+    document.getElementById(`step${currentStep}`).classList.remove('active');
+    currentStep = step;
+    document.getElementById(`step${currentStep}`).classList.add('active');
+    updateStepper(step);
+}
+
+function prevStep(step) {
+    document.getElementById(`step${currentStep}`).classList.remove('active');
+    currentStep = step;
+    document.getElementById(`step${currentStep}`).classList.add('active');
+    updateStepper(step);
+}
+
+async function gerarGradeFinal() {
+    // Mantém o código do fetch que já criamos
+    alert("Iniciando processamento no backend...");
+}
+
 function nextStep(step) {
     document.getElementById(`step${currentStep}`).style.display = 'none';
     currentStep = step;
