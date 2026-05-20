@@ -195,3 +195,24 @@ button {
     background: #f8d7da;
     border-radius: 4px;
 }
+
+/* Estilos da Grade Interativa (Tela 4) */
+.tabela-interativa th, .tabela-interativa td {
+    text-align: center;
+    vertical-align: middle;
+}
+.celula-horario {
+    cursor: pointer;
+    background-color: #e8f5e9; /* Verde claro - Livre */
+    color: #2e7d32;
+    font-weight: 600;
+    transition: all 0.2s;
+    user-select: none;
+}
+.celula-horario:hover {
+    filter: brightness(0.95);
+}
+.celula-horario.bloqueado {
+    background-color: #ffebee; /* Vermelho claro - Bloqueado */
+    color: #c62828;
+}
