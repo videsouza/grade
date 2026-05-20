@@ -87,6 +87,35 @@ def gerar_grade(dados: PayloadGrade):
             ]
             modelo.Add(sum(aulas_neste_dia) <= max_por_dia)
 
+    # R6: Aulas Geminadas (Dobradinhas)
+    for index_matriz, matriz in enumerate(dados.matrizes_curriculares):
+        turma_id = matriz["turma_id"]
+        # Pega a regra do JSON. Se for 2, o sistema entende que não pode haver aula isolada.
+        geminadas = matriz.get("aulas_geminadas", 1) 
+        
+        if geminadas == 2:
+            for dia in dias:
+                # Precisamos usar o índice do período para saber quem vem antes e quem vem depois
+                for i in range(len(periodos)):
+                    periodo_atual = periodos[i]
+                    var_atual = variaveis[(turma_id, index_matriz, dia, periodo_atual)]
+                    
+                    vizinhos = []
+                    # Se NÃO for o primeiro período do dia, pegamos o período anterior
+                    if i > 0:
+                        periodo_anterior = periodos[i - 1]
+                        vizinhos.append(variaveis[(turma_id, index_matriz, dia, periodo_anterior)])
+                        
+                    # Se NÃO for o último período do dia, pegamos o próximo período
+                    if i < len(periodos) - 1:
+                        periodo_proximo = periodos[i + 1]
+                        vizinhos.append(variaveis[(turma_id, index_matriz, dia, periodo_proximo)])
+                    
+                    # A Mágica: Se var_atual for 1 (teve aula), a soma dos vizinhos tem que ser pelo menos 1 (teve aula grudada).
+                    # Equação: var_atual <= vizinho_anterior + vizinho_proximo
+                    modelo.Add(var_atual <= sum(vizinhos))
+
+  
     # ====================================================================
     # 3. O SOLVER (Processamento e Extração)
     # ====================================================================
