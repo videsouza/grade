@@ -74,6 +74,99 @@ function salvarPasso1() {
     nextStep(2);
 }
 
+// Simulação de turmas cadastradas no banco de dados (Secretaria)
+const bancoTurmasMock = [
+    { id: 101, nome: "6º Ano A (Manhã)" },
+    { id: 102, nome: "6º Ano B (Manhã)" },
+    { id: 103, nome: "7º Ano A (Manhã)" },
+    { id: 104, nome: "8º Ano A (Tarde)" },
+    { id: 105, nome: "9º Ano A (Tarde)" }
+];
+
+function abrirModalTurmas() {
+    const select = document.getElementById('selectTurmasDisponiveis');
+    select.innerHTML = ''; // Limpa antes de renderizar
+    
+    // Filtra para mostrar apenas turmas que ainda NÃO foram adicionadas ao cenário
+    const filtradas = bancoTurmasMock.filter(bt => !estadoGlobal.turmas_selecionadas.includes(bt.id));
+    
+    if (filtradas.length === 0) {
+        select.innerHTML = '<option value="">Todas as turmas já foram vinculadas</option>';
+    } else {
+        filtradas.forEach(turma => {
+            select.innerHTML += `<option value="${turma.id}">${turma.nome}</option>`;
+        });
+    }
+    
+    document.getElementById('modalTurmas').classList.add('active');
+}
+
+function fecharModalTurmas() {
+    document.getElementById('modalTurmas').classList.remove('active');
+}
+
+function confirmarInclusaoTurma() {
+    const select = document.getElementById('selectTurmasDisponiveis');
+    const idSelecionado = parseInt(select.value);
+    
+    if (!idSelecionado) {
+        fecharModalTurmas();
+        return;
+    }
+
+    // Adiciona o ID ao array global
+    estadoGlobal.turmas_selecionadas.push(idSelecionado);
+    
+    fecharModalTurmas();
+    renderizarTabelaTurmas();
+}
+
+function removerTurmaCenario(id) {
+    // Remove do array global
+    estadoGlobal.turmas_selecionadas = estadoGlobal.turmas_selecionadas.filter(tId => tId !== id);
+    renderizarTabelaTurmas();
+}
+
+function renderizarTabelaTurmas() {
+    const tbody = document.getElementById('tabelaTurmasCenario');
+    const msgValidacao = document.getElementById('msgValidacaoTurma');
+    tbody.innerHTML = '';
+
+    if (estadoGlobal.turmas_selecionadas.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="2" class="empty-state">Nenhum registro encontrado</td></tr>`;
+        return;
+    }
+
+    msgValidacao.style.display = 'none'; // Oculta o erro caso tenha itens
+
+    // Varre as turmas selecionadas buscando os nomes no nosso Mock
+    estadoGlobal.turmas_selecionadas.forEach(id => {
+        const dadosTurma = bancoTurmasMock.find(bt => bt.id === id);
+        if (dadosTurma) {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${dadosTurma.nome}</td>
+                    <td>
+                        <button class="btn-danger-icon" onclick="removerTurmaCenario(${id})">🗑 Excluir</button>
+                    </td>
+                </tr>
+            `;
+        }
+    });
+}
+
+function salvarPasso2() {
+    const msgValidacao = document.getElementById('msgValidacaoTurma');
+    
+    if (estadoGlobal.turmas_selecionadas.length === 0) {
+        msgValidacao.style.display = 'block';
+        return;
+    }
+
+    console.log("Passo 2 Salvo - Turmas vinculadas:", estadoGlobal.turmas_selecionadas);
+    nextStep(3); // Vai para a matriz curricular
+}
+
 // (Mantenha as funções nextStep, prevStep e updateStepper que já estavam aqui)
 
 let currentStep = 1;
