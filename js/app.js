@@ -171,24 +171,43 @@ function salvarPasso2() {
 
 let currentStep = 1;
 
+let currentStep = 1;
+
+// Função exclusiva para pintar o menu lá de cima
 function updateStepper(step) {
-    // Remove classe ativa de todos
-    document.querySelectorAll('.step-indicator').forEach(el => el.classList.remove('active'));
-    // Adiciona classe ativa no passo atual
-    document.getElementById(`ind-${step}`).classList.add('active');
+    // 1. Tira a cor azul de todas as abas
+    document.querySelectorAll('.step-indicator').forEach(el => {
+        el.classList.remove('active');
+    });
+    
+    // 2. Coloca a cor azul apenas na aba atual
+    const indicadorAtual = document.getElementById(`ind-${step}`);
+    if (indicadorAtual) {
+        indicadorAtual.classList.add('active');
+    }
 }
 
+// Função para avançar de tela
 function nextStep(step) {
+    // Esconde a tela atual
     document.getElementById(`step${currentStep}`).classList.remove('active');
+    // Atualiza o número do passo
     currentStep = step;
+    // Mostra a nova tela
     document.getElementById(`step${currentStep}`).classList.add('active');
+    // Atualiza o menu superior
     updateStepper(step);
 }
 
+// Função para voltar de tela
 function prevStep(step) {
+    // Esconde a tela atual
     document.getElementById(`step${currentStep}`).classList.remove('active');
+    // Atualiza o número do passo
     currentStep = step;
+    // Mostra a nova tela
     document.getElementById(`step${currentStep}`).classList.add('active');
+    // Atualiza o menu superior
     updateStepper(step);
 }
 
