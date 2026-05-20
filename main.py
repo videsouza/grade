@@ -16,7 +16,6 @@ def gerar_grade(dados: PayloadGrade):
     
     dias = dados.cenario["dias_semana"]
     periodos = [p["ordem"] for p in dados.cenario["periodos"]]
-    
     variaveis = {}
     
     # 1. CRIANDO AS VARIÁVEIS
@@ -27,16 +26,12 @@ def gerar_grade(dados: PayloadGrade):
                 nome_var = f"X_m{index_matriz}_t{turma_id}_d{dia}_p{periodo}"
                 variaveis[(turma_id, index_matriz, dia, periodo)] = modelo.NewBoolVar(nome_var)
 
-    # ====================================================================
     # 2. RESTRIÇÕES RÍGIDAS (Hard Constraints)
-    # ====================================================================
-    
     professores_ids = set([m["professor_id"] for m in dados.matrizes_curriculares])
     turmas_ids = dados.turmas_selecionadas
     
     for dia in dias:
         for periodo in periodos:
-            
             # R1: Um professor não pode dar duas aulas ao mesmo tempo
             for prof_id in professores_ids:
                 aulas_do_prof = [
@@ -57,40 +52,66 @@ def gerar_grade(dados: PayloadGrade):
                 if aulas_da_turma:
                     modelo.AddAtMostOne(aulas_da_turma)
 
-    # R3: A carga horária da disciplina DEVE ser cumprida rigorosamente
+    # R3: A carga horária da disciplina DEVE ser cumprida
     for index_matriz, matriz in enumerate(dados.matrizes_curriculares):
         turma_id = matriz["turma_id"]
         carga_exigida = matriz["carga_horaria"]
         
-        # Somamos todas as variáveis de todos os dias e períodos para esta disciplina
         todas_aulas_desta_disciplina = [
             variaveis[(turma_id, index_matriz, dia, periodo)]
-            for dia in dias
-            for periodo in periodos
+            for dia in dias for periodo in periodos
         ]
-        # A soma de todas as vezes que a aula ocorre tem que ser exatamente a carga exigida
         modelo.Add(sum(todas_aulas_desta_disciplina) == carga_exigida)
 
-    # R4: Respeitar o tempo livre / indisponibilidade do professor
-    # Mapeamos as indisponibilidades para acesso rápido
+    # R4: Respeitar a indisponibilidade do professor
     mapa_indisp = {p["professor_id"]: p["indisponibilidades"] for p in dados.disponibilidades_professores}
-    
     for index_matriz, matriz in enumerate(dados.matrizes_curriculares):
         prof_id = matriz["professor_id"]
         turma_id = matriz["turma_id"]
-        
         if prof_id in mapa_indisp:
             for bloqueio in mapa_indisp[prof_id]:
                 dia_bloqueado = bloqueio["dia"]
                 periodo_bloqueado = bloqueio["periodo"]
-                
-                # Se esse dia/período existir no cenário, travamos a variável em zero (0)
                 if dia_bloqueado in dias and periodo_bloqueado in periodos:
                     modelo.Add(variaveis[(turma_id, index_matriz, dia_bloqueado, periodo_bloqueado)] == 0)
 
     # ====================================================================
-
-    return {
-        "status": "sucesso", 
-        "mensagem": "Matemática montada: Variáveis e todas as Restrições Rígidas (Conflitos, Carga Horária e Indisponibilidade) foram aplicadas com sucesso!"
-    }
+    # 3. O SOLVER (Processamento e Extração)
+    # ====================================================================
+    
+    solver = cp_model.CpSolver()
+    
+    # Damos um limite de 60 segundos para não derrubar o servidor caso a grade seja matematicamente impossível
+    solver.parameters.max_time_in_seconds = 60.0 
+    
+    # Manda o Google processar!
+    status = solver.Solve(modelo)
+    
+    # Verifica se ele achou uma solução
+    if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
+        grade_final = []
+        
+        # Vamos ler as variáveis. Apenas as que o algoritmo marcou com "1" entram na grade
+        for (turma_id, index_matriz, dia, periodo), var in variaveis.items():
+            if solver.Value(var) == 1:
+                matriz = dados.matrizes_curriculares[index_matriz]
+                grade_final.append({
+                    "turma_id": turma_id,
+                    "dia": dia,
+                    "periodo": periodo,
+                    "disciplina_id": matriz.get("disciplina_id", "Desconhecida"),
+                    "professor_id": matriz["professor_id"]
+                })
+        
+        return {
+            "status": "sucesso", 
+            "mensagem": "Grade gerada com sucesso!",
+            "total_aulas_alocadas": len(grade_final),
+            "grade": grade_final
+        }
+    else:
+        # Se o sistema tentar e não conseguir fechar o quebra-cabeça
+        return {
+            "status": "erro", 
+            "mensagem": "Inviável. O algoritmo não conseguiu encontrar uma combinação possível com as regras atuais."
+        }
