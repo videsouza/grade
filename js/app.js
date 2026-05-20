@@ -412,6 +412,60 @@ function toggleDisponibilidade(celula, profId, dia, periodo) {
     }
 }
 
+
+function renderizarGradePronta(gradeFinal) {
+    // Esconde a Tela 4 e mostra a Tela 5
+    document.getElementById('step4').classList.remove('active');
+    document.getElementById('step5').classList.add('active');
+
+    const container = document.getElementById('tabelasResultado');
+    container.innerHTML = '';
+
+    // Descobre quais turmas têm aulas nessa grade
+    const turmasIds = [...new Set(gradeFinal.map(a => a.turma_id))];
+
+    const dias = estadoGlobal.cenario.dias_semana;
+    const periodos = estadoGlobal.cenario.periodos;
+
+    // Para cada turma, desenhamos uma tabela
+    turmasIds.forEach(tId => {
+        const turmaNome = bancoTurmasMock.find(t => t.id === tId)?.nome || `Turma ${tId}`;
+        
+        let html = `<h3 style="margin-top: 30px; color: var(--primary-color); border-bottom: 2px solid var(--border-color); padding-bottom: 10px;">${turmaNome}</h3>`;
+        html += '<table class="data-table tabela-interativa" style="margin-top: 15px;"><thead><tr><th>Horário</th>';
+
+        // Cabeçalho dos dias
+        dias.forEach(dia => { html += `<th>${nomesDias[dia]}</th>`; });
+        html += '</tr></thead><tbody>';
+
+        // Linhas dos períodos (horários)
+        periodos.forEach(periodo => {
+            html += `<tr><td><strong>${periodo.ordem}ª Aula</strong></td>`;
+            
+            dias.forEach(dia => {
+                // Procura se o algoritmo colocou alguma aula para essa turma, nesse dia e horário
+                const aula = gradeFinal.find(a => a.turma_id === tId && a.dia === dia && a.periodo === periodo.ordem);
+                
+                if (aula) {
+                    const discNome = bancoDisciplinasMock.find(d => d.id === aula.disciplina_id)?.nome || 'Disciplina';
+                    const profNome = bancoProfessoresMock.find(p => p.id === aula.professor_id)?.nome || 'Professor';
+                    
+                    html += `<td style="background-color: #e3f2fd; border: 1px solid #90caf9;">
+                        <strong style="color: #0d47a1;">${discNome}</strong><br>
+                        <small style="color: #1565c0;">${profNome}</small>
+                    </td>`;
+                } else {
+                    html += `<td style="color: #ccc;">-</td>`; // Janela livre
+                }
+            });
+            html += '</tr>';
+        });
+
+        html += '</tbody></table>';
+        container.innerHTML += html;
+    });
+}
+
 // O GRANDE MOMENTO: Envio para o Python
 async function gerarGradeFinal() {
     const btn = document.getElementById('btnFinalizar');
