@@ -165,19 +165,25 @@
             </div>
         </div>
 
-        <div id="step4" class="step-content">
+       <div id="step4" class="step-content">
             <h2>Disponibilidade dos Professores</h2>
+            <p style="margin-bottom: 15px; color: var(--text-light);">Clique nos horários para bloquear a agenda do professor (Folga, HTPC, etc).</p>
+            
             <div class="form-group">
                 <label>Selecione o Professor</label>
-                <select><option>João (Matemática)</option></select>
+                <select id="selectProfDisponibilidade" onchange="mudarProfessorDisponibilidade()">
+                    </select>
             </div>
-            <div class="grid-placeholder">Grade de horários interativa entrará aqui</div>
+            
+            <div id="containerGradeDisponibilidade" style="overflow-x: auto; margin-top: 20px;">
+                </div>
             
             <div class="actions between mt-20">
                 <button class="btn-outline" onclick="prevStep(3)">Voltar</button>
                 <button class="btn-success" id="btnFinalizar" onclick="gerarGradeFinal()">Finalizar e Gerar Grade</button>
             </div>
         </div>
+        
     </main>
 
     <footer class="main-footer">
