@@ -316,7 +316,10 @@ function salvarPasso3() {
     }
 
     console.log("Passo 3 Salvo - Matriz:", estadoGlobal.matrizes_curriculares);
-    // Aqui vai carregar a tela 4 de indisponibilidades
+    
+    // --> NOVA LINHA AQUI <-- Prepara a grade da Tela 4
+    prepararTela4();
+    
     nextStep(4);
 }
 
