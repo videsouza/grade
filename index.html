@@ -105,15 +105,63 @@
         </div>
 
         <div id="step3" class="step-content">
-            <h2>Disciplinas e Professores</h2>
-            <div class="form-grid">
-                <div class="form-group"><label>Turma</label><select><option>Selecione</option></select></div>
-                <div class="form-group"><label>Disciplina</label><select><option>Selecione</option></select></div>
-                <div class="form-group"><label>Professor</label><select><option>Selecione</option></select></div>
+            <h2>Matriz Curricular</h2>
+            
+            <div class="form-grid" style="background: var(--bg-light); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color);">
+                <div class="form-group">
+                    <label>Turma</label>
+                    <select id="matrizTurma"><option value="">Selecione...</option></select>
+                </div>
+                <div class="form-group">
+                    <label>Disciplina</label>
+                    <select id="matrizDisciplina"><option value="">Selecione...</option></select>
+                </div>
+                <div class="form-group">
+                    <label>Professor</label>
+                    <select id="matrizProfessor"><option value="">Selecione...</option></select>
+                </div>
+                <div class="form-group">
+                    <label title="Quantidade total de aulas na semana">C.H. Semanal</label>
+                    <input type="number" id="matrizCarga" min="1" value="5">
+                </div>
+                <div class="form-group">
+                    <label title="Máximo de aulas dessa matéria no mesmo dia">Máx. Dia</label>
+                    <input type="number" id="matrizMaxDia" min="1" value="2">
+                </div>
+                <div class="form-group">
+                    <label>Geminadas?</label>
+                    <select id="matrizGeminada">
+                        <option value="1">Não (Aulas Simples)</option>
+                        <option value="2">Sim (Aulas Duplas)</option>
+                    </select>
+                </div>
+                <div class="form-group" style="display: flex; align-items: flex-end;">
+                    <button class="btn-secondary" onclick="adicionarLinhaMatriz()" style="width: 100%;">+ Adicionar</button>
+                </div>
             </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Turma</th>
+                        <th>Disciplina</th>
+                        <th>Professor</th>
+                        <th>C.H.</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelaMatriz">
+                    <tr><td colspan="5" class="empty-state">Nenhuma disciplina vinculada</td></tr>
+                </tbody>
+            </table>
+
+            <p id="msgValidacaoMatriz" class="error-text" style="display: none; margin-top: 10px;">
+                *Adicione pelo menos uma regra na matriz para continuar.
+            </p>
+
             <div class="actions between mt-20">
                 <button class="btn-outline" onclick="prevStep(2)">Voltar</button>
-                <button class="btn-primary" onclick="nextStep(4)">Avançar</button>
+                <button class="btn-primary" onclick="salvarPasso3()">Avançar</button>
             </div>
         </div>
 
