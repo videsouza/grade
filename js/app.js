@@ -1,3 +1,81 @@
+// O "pacote" que vai acumular todos os dados
+const estadoGlobal = {
+    cenario: { nome: "", dias_semana: [], periodos: [] },
+    turmas_selecionadas: [],
+    matrizes_curriculares: [],
+    disponibilidades_professores: []
+};
+
+// Controle de Períodos Dinâmicos
+let contadorPeriodos = 0;
+
+function adicionarPeriodo(inicio = "", fim = "") {
+    contadorPeriodos++;
+    const tbody = document.getElementById('listaPeriodos');
+    const tr = document.createElement('tr');
+    tr.id = `periodo-${contadorPeriodos}`;
+    
+    tr.innerHTML = `
+        <td>${contadorPeriodos}ª Aula</td>
+        <td><input type="time" class="time-input inicio" value="${inicio}" required></td>
+        <td><input type="time" class="time-input fim" value="${fim}" required></td>
+    `;
+    tbody.appendChild(tr);
+}
+
+// Inicializa a tela com 5 aulas padrão para facilitar a vida do usuário
+window.onload = () => {
+    adicionarPeriodo("07:00", "07:50");
+    adicionarPeriodo("07:50", "08:40");
+    adicionarPeriodo("08:40", "09:30");
+    adicionarPeriodo("09:45", "10:35");
+    adicionarPeriodo("10:35", "11:25");
+};
+
+// Quando clica em "Avançar" na Tela 1
+function salvarPasso1() {
+    const nome = document.getElementById('nomeCenario').value;
+    if (!nome) {
+        alert("Por favor, preencha o nome do cenário.");
+        return;
+    }
+
+    // Coleta os dias marcados
+    const checkboxes = document.querySelectorAll('input[name="dias"]:checked');
+    const dias = Array.from(checkboxes).map(cb => parseInt(cb.value));
+    
+    if (dias.length === 0) {
+        alert("Selecione pelo menos um dia da semana.");
+        return;
+    }
+
+    // Coleta os períodos
+    const linhas = document.querySelectorAll('#listaPeriodos tr');
+    const periodos = [];
+    
+    linhas.forEach((linha, index) => {
+        const inicio = linha.querySelector('.inicio').value;
+        const fim = linha.querySelector('.fim').value;
+        periodos.push({
+            ordem: index + 1,
+            inicio: inicio,
+            fim: fim
+        });
+    });
+
+    // Salva no nosso pacote global
+    estadoGlobal.cenario.nome = nome;
+    estadoGlobal.cenario.dias_semana = dias;
+    estadoGlobal.cenario.periodos = periodos;
+
+    console.log("Passo 1 Salvo:", estadoGlobal.cenario);
+    
+    // Avança visualmente para a Tela 2
+    nextStep(2);
+}
+
+// (Mantenha as funções nextStep, prevStep e updateStepper que já estavam aqui)
+
 let currentStep = 1;
 
 function updateStepper(step) {
