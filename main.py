@@ -75,6 +75,26 @@ def gerar_grade(dados: PayloadGrade):
                 if dia_bloqueado in dias and periodo_bloqueado in periodos:
                     modelo.Add(variaveis[(turma_id, index_matriz, dia_bloqueado, periodo_bloqueado)] == 0)
 
+
+
+    # R5: Máximo de aulas por dia (NMAP)
+    for index_matriz, matriz in enumerate(dados.matrizes_curriculares):
+        turma_id = matriz["turma_id"]
+        # Pega o valor do JSON. Se não existir no JSON por algum motivo, assume 2 como padrão.
+        max_por_dia = matriz.get("max_aulas_dia", 2) 
+        
+        for dia in dias:
+            # Pega todas as variáveis dessa disciplina, mas APENAS as desse dia específico
+            aulas_neste_dia = [
+                variaveis[(turma_id, index_matriz, dia, periodo)]
+                for periodo in periodos
+            ]
+            # A soma das aulas no dia não pode passar do limite
+            modelo.Add(sum(aulas_neste_dia) <= max_por_dia)
+
+
+
+    
     # ====================================================================
     # 3. O SOLVER (Processamento e Extração)
     # ====================================================================
