@@ -192,6 +192,134 @@ function salvarPasso2() {
 }
 
 // ============================================================================
+// 3.5 LÓGICA DA TELA 3 (MATRIZ CURRICULAR)
+// ============================================================================
+
+// Simulação do Banco de Dados
+const bancoDisciplinasMock = [
+    { id: 1, nome: "Matemática" },
+    { id: 2, nome: "Língua Portuguesa" },
+    { id: 3, nome: "História" },
+    { id: 4, nome: "Geografia" },
+    { id: 5, nome: "Ciências" }
+];
+
+const bancoProfessoresMock = [
+    { id: 10, nome: "Prof. Carlos (Mat/Cie)" },
+    { id: 11, nome: "Profa. Ana (Port)" },
+    { id: 12, nome: "Prof. Roberto (Hist/Geo)" }
+];
+
+let contadorIdMatriz = 0; // Para gerar um ID único para cada linha adicionada
+
+// Esta função prepara os "selects" da Tela 3
+function carregarSelectsMatriz() {
+    // 1. Carrega as Turmas (apenas as que foram selecionadas no Passo 2)
+    const selectTurma = document.getElementById('matrizTurma');
+    selectTurma.innerHTML = '<option value="">Selecione...</option>';
+    estadoGlobal.turmas_selecionadas.forEach(id => {
+        const turma = bancoTurmasMock.find(t => t.id === id);
+        if (turma) selectTurma.innerHTML += `<option value="${turma.id}">${turma.nome}</option>`;
+    });
+
+    // 2. Carrega as Disciplinas
+    const selectDisc = document.getElementById('matrizDisciplina');
+    selectDisc.innerHTML = '<option value="">Selecione...</option>';
+    bancoDisciplinasMock.forEach(d => {
+        selectDisc.innerHTML += `<option value="${d.id}">${d.nome}</option>`;
+    });
+
+    // 3. Carrega os Professores
+    const selectProf = document.getElementById('matrizProfessor');
+    selectProf.innerHTML = '<option value="">Selecione...</option>';
+    bancoProfessoresMock.forEach(p => {
+        selectProf.innerHTML += `<option value="${p.id}">${p.nome}</option>`;
+    });
+}
+
+function adicionarLinhaMatriz() {
+    const turmaId = parseInt(document.getElementById('matrizTurma').value);
+    const disciplinaId = parseInt(document.getElementById('matrizDisciplina').value);
+    const professorId = parseInt(document.getElementById('matrizProfessor').value);
+    const cargaHoraria = parseInt(document.getElementById('matrizCarga').value);
+    const maxDia = parseInt(document.getElementById('matrizMaxDia').value);
+    const geminadas = parseInt(document.getElementById('matrizGeminada').value);
+
+    if (!turmaId || !disciplinaId || !professorId || isNaN(cargaHoraria)) {
+        alert("Preencha Turma, Disciplina, Professor e Carga Horária.");
+        return;
+    }
+
+    contadorIdMatriz++;
+    const novaRegra = {
+        _id_temp: contadorIdMatriz, // Apenas para controle no front-end
+        turma_id: turmaId,
+        disciplina_id: disciplinaId,
+        professor_id: professorId,
+        carga_horaria: cargaHoraria,
+        max_aulas_dia: maxDia,
+        aulas_geminadas: geminadas
+    };
+
+    estadoGlobal.matrizes_curriculares.push(novaRegra);
+    
+    // Limpa alguns campos para facilitar a próxima inserção
+    document.getElementById('matrizDisciplina').value = "";
+    document.getElementById('matrizCarga').value = "5";
+    
+    renderizarTabelaMatriz();
+}
+
+function removerLinhaMatriz(idTemp) {
+    estadoGlobal.matrizes_curriculares = estadoGlobal.matrizes_curriculares.filter(m => m._id_temp !== idTemp);
+    renderizarTabelaMatriz();
+}
+
+function renderizarTabelaMatriz() {
+    const tbody = document.getElementById('tabelaMatriz');
+    const msgValidacao = document.getElementById('msgValidacaoMatriz');
+    tbody.innerHTML = '';
+
+    if (estadoGlobal.matrizes_curriculares.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="empty-state">Nenhuma disciplina vinculada</td></tr>`;
+        return;
+    }
+
+    msgValidacao.style.display = 'none';
+
+    estadoGlobal.matrizes_curriculares.forEach(regra => {
+        const turma = bancoTurmasMock.find(t => t.id === regra.turma_id)?.nome || "Desconhecida";
+        const disc = bancoDisciplinasMock.find(d => d.id === regra.disciplina_id)?.nome || "Desconhecida";
+        const prof = bancoProfessoresMock.find(p => p.id === regra.professor_id)?.nome || "Desconhecido";
+
+        tbody.innerHTML += `
+            <tr>
+                <td>${turma}</td>
+                <td>${disc}</td>
+                <td>${prof}</td>
+                <td>${regra.carga_horaria} aulas</td>
+                <td>
+                    <button class="btn-danger-icon" onclick="removerLinhaMatriz(${regra._id_temp})">🗑 Excluir</button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+function salvarPasso3() {
+    const msgValidacao = document.getElementById('msgValidacaoMatriz');
+    
+    if (estadoGlobal.matrizes_curriculares.length === 0) {
+        msgValidacao.style.display = 'block';
+        return;
+    }
+
+    console.log("Passo 3 Salvo - Matriz:", estadoGlobal.matrizes_curriculares);
+    // Aqui vai carregar a tela 4 de indisponibilidades
+    nextStep(4);
+}
+
+// ============================================================================
 // 4. LÓGICA FINAL (GERAR GRADE)
 // ============================================================================
 
