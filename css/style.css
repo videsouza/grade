@@ -146,3 +146,7 @@ button {
     display: flex; align-items: center; justify-content: center; color: var(--text-light);
     margin-top: 15px; border-radius: 4px;
 }
+
+.checkbox-group label { margin-right: 15px; font-weight: 500; cursor: pointer; }
+.time-input { padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; }
+
