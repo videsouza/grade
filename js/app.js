@@ -485,8 +485,7 @@ async function gerarGradeFinal() {
         const data = await response.json();
 
         if (data.status === "sucesso") {
-            alert(`SISTEMA FINALIZADO! Grade gerada com sucesso (${data.total_aulas_alocadas} aulas alocadas). Verifique o console do navegador!`);
-            console.log("RESULTADO FINAL DA GRADE:", data.grade);
+            renderizarGradePronta(data.grade);
         } else {
             alert("O algoritmo não conseguiu fechar a grade. Motivo: " + data.mensagem);
         }
