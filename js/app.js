@@ -170,9 +170,32 @@ async function adicionarCadastro(tipo) {
     }
 }
 
-// 3. A exclusão real no banco faremos em seguida!
-function removerCadastro(tipo, id) {
-    alert("A rota de exclusão no Python será construída no próximo passo!");
+// 3. Deleta o dado real no banco
+async function removerCadastro(tipo, id) {
+    // Adicionamos uma confirmação por segurança
+    if (!confirm("Tem certeza que deseja excluir este registro?")) {
+        return;
+    }
+
+    let endpoint;
+    if (tipo === 'turma') endpoint = `/api/turmas/${id}`;
+    else if (tipo === 'disciplina') endpoint = `/api/disciplinas/${id}`;
+    else if (tipo === 'professor') endpoint = `/api/professores/${id}`;
+
+    try {
+        const response = await fetch(endpoint, { 
+            method: "DELETE" 
+        });
+        
+        if (response.ok) {
+            // Se apagou com sucesso no servidor, busca a lista atualizada
+            await carregarCadastrosDoBanco();
+        } else {
+            alert("Erro ao tentar excluir no servidor.");
+        }
+    } catch (error) {
+        alert("Falha de comunicação com a API.");
+    }
 }
 
 function renderizarListasDeCadastro() {
