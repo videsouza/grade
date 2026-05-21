@@ -104,55 +104,75 @@ function salvarPasso1() {
 // ============================================================================
 
 // ============================================================================
-// SISTEMA DE CADASTROS DINÂMICOS (Substituindo os Mocks)
+// SISTEMA DE CADASTROS DINÂMICOS (Conectado ao Banco de Dados Python)
 // ============================================================================
 
-// Carrega os dados salvos no navegador ou inicia arrays vazios
-let bancoTurmas = JSON.parse(localStorage.getItem('bancoTurmas')) || [];
-let bancoDisciplinas = JSON.parse(localStorage.getItem('bancoDisciplinas')) || [];
-let bancoProfessores = JSON.parse(localStorage.getItem('bancoProfessores')) || [];
+let bancoTurmas = [];
+let bancoDisciplinas = [];
+let bancoProfessores = [];
 
-function gerarIdUnico() {
-    return Math.floor(Math.random() * 1000000);
+// 1. Busca os dados reais do servidor Python quando a página carrega
+async function carregarCadastrosDoBanco() {
+    try {
+        const resTurmas = await fetch("/api/turmas");
+        bancoTurmas = await resTurmas.json();
+
+        const resDisc = await fetch("/api/disciplinas");
+        bancoDisciplinas = await resDisc.json();
+
+        const resProf = await fetch("/api/professores");
+        bancoProfessores = await resProf.json();
+
+        renderizarListasDeCadastro();
+    } catch (error) {
+        console.error("Erro ao carregar do banco de dados:", error);
+    }
 }
 
-function salvarCadastrosNoNavegador() {
-    localStorage.setItem('bancoTurmas', JSON.stringify(bancoTurmas));
-    localStorage.setItem('bancoDisciplinas', JSON.stringify(bancoDisciplinas));
-    localStorage.setItem('bancoProfessores', JSON.stringify(bancoProfessores));
-}
-
-function adicionarCadastro(tipo) {
-    let input, arrayDestino, ulDestino;
+// 2. Envia o novo dado para o servidor Python salvar
+async function adicionarCadastro(tipo) {
+    let input, endpoint;
 
     if (tipo === 'turma') {
         input = document.getElementById('novaTurmaNome');
-        arrayDestino = bancoTurmas;
+        endpoint = "/api/turmas";
     } else if (tipo === 'disciplina') {
         input = document.getElementById('novaDisciplinaNome');
-        arrayDestino = bancoDisciplinas;
+        endpoint = "/api/disciplinas";
     } else if (tipo === 'professor') {
         input = document.getElementById('novoProfessorNome');
-        arrayDestino = bancoProfessores;
+        endpoint = "/api/professores";
     }
 
     const nome = input.value.trim();
     if (!nome) return;
 
-    arrayDestino.push({ id: gerarIdUnico(), nome: nome });
-    input.value = ""; // Limpa o campo
-    
-    salvarCadastrosNoNavegador();
-    renderizarListasDeCadastro();
+    input.disabled = true; // Trava o campo enquanto salva
+
+    try {
+        const response = await fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ nome: nome })
+        });
+        
+        if (response.ok) {
+            // Se salvou com sucesso, busca a lista atualizada do banco
+            await carregarCadastrosDoBanco();
+            input.value = ""; 
+        } else {
+            alert("Erro ao salvar no servidor.");
+        }
+    } catch (error) {
+        alert("Falha de comunicação com a API.");
+    } finally {
+        input.disabled = false;
+    }
 }
 
+// 3. A exclusão real no banco faremos em seguida!
 function removerCadastro(tipo, id) {
-    if (tipo === 'turma') bancoTurmas = bancoTurmas.filter(i => i.id !== id);
-    if (tipo === 'disciplina') bancoDisciplinas = bancoDisciplinas.filter(i => i.id !== id);
-    if (tipo === 'professor') bancoProfessores = bancoProfessores.filter(i => i.id !== id);
-    
-    salvarCadastrosNoNavegador();
-    renderizarListasDeCadastro();
+    alert("A rota de exclusão no Python será construída no próximo passo!");
 }
 
 function renderizarListasDeCadastro() {
@@ -160,7 +180,7 @@ function renderizarListasDeCadastro() {
     const ulDisc = document.getElementById('listaCadDisciplinas');
     const ulProf = document.getElementById('listaCadProfessores');
 
-    if(!ulTurmas || !ulDisc || !ulProf) return; // Evita erro se a tela não estiver carregada
+    if(!ulTurmas || !ulDisc || !ulProf) return; 
 
     ulTurmas.innerHTML = bancoTurmas.map(i => `<li style="display:flex; justify-content:space-between; margin-bottom:5px; border-bottom:1px solid #ddd; padding-bottom:5px;">${i.nome} <span style="color:red; cursor:pointer;" onclick="removerCadastro('turma', ${i.id})">✖</span></li>`).join('');
     ulDisc.innerHTML = bancoDisciplinas.map(i => `<li style="display:flex; justify-content:space-between; margin-bottom:5px; border-bottom:1px solid #ddd; padding-bottom:5px;">${i.nome} <span style="color:red; cursor:pointer;" onclick="removerCadastro('disciplina', ${i.id})">✖</span></li>`).join('');
@@ -178,6 +198,9 @@ function mostrarAba(aba) {
         document.getElementById('aba-grade').style.display = 'block';
     }
 }
+
+// Quando a página abrir, vai lá no Python buscar os dados
+window.addEventListener('DOMContentLoaded', carregarCadastrosDoBanco);
 
 // Inicia as listas assim que a página abre
 window.addEventListener('DOMContentLoaded', renderizarListasDeCadastro);
