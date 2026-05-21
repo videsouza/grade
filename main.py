@@ -117,6 +117,32 @@ def criar_professor(item: ItemCadastro):
     conn.close()
     return {"id": novo_id, "nome": item.nome}
 
+# --- ROTAS DE EXCLUSÃO (DELETE) ---
+
+@app.delete("/api/turmas/{item_id}")
+def deletar_turma(item_id: int):
+    conn = get_db_connection()
+    conn.execute("DELETE FROM turmas WHERE id = ?", (item_id,))
+    conn.commit()
+    conn.close()
+    return {"status": "sucesso"}
+
+@app.delete("/api/disciplinas/{item_id}")
+def deletar_disciplina(item_id: int):
+    conn = get_db_connection()
+    conn.execute("DELETE FROM disciplinas WHERE id = ?", (item_id,))
+    conn.commit()
+    conn.close()
+    return {"status": "sucesso"}
+
+@app.delete("/api/professores/{item_id}")
+def deletar_professor(item_id: int):
+    conn = get_db_connection()
+    conn.execute("DELETE FROM professores WHERE id = ?", (item_id,))
+    conn.commit()
+    conn.close()
+    return {"status": "sucesso"}
+
 @app.post("/api/gerar-grade")
 def gerar_grade(dados: PayloadGrade):
     modelo = cp_model.CpModel()
