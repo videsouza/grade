@@ -15,189 +15,222 @@
         </div>
     </header>
 
-    <main class="container">
-        <div class="stepper">
-            <div class="step-indicator active" id="ind-1">1. Grade de Horários</div>
-            <div class="step-indicator" id="ind-2">2. Turmas</div>
-            <div class="step-indicator" id="ind-3">3. Disciplinas da Turma</div>
-            <div class="step-indicator" id="ind-4">4. Disponibilidade</div>
+    <nav style="background-color: #e9ecef; border-bottom: 1px solid var(--border-color); padding: 10px 20px;">
+        <div style="max-width: 1000px; margin: 0 auto; display: flex; gap: 15px;">
+            <button class="btn-primary" onclick="mostrarAba('cadastros')">📋 Cadastros Básicos</button>
+            <button class="btn-outline" onclick="mostrarAba('grade')">📅 Gerar Grade</button>
+        </div>
+    </nav>
+
+<main class="container">
+        
+        <div id="aba-cadastros" style="display: block;">
+            <h2>Gerenciamento de Cadastros</h2>
+            <p style="color: var(--text-light); margin-bottom: 20px;">Cadastre os dados base que serão utilizados na geração da grade.</p>
+
+            <div class="form-grid">
+                <div class="step-content active" style="padding: 15px;">
+                    <h3 style="color: var(--primary-color); margin-bottom: 10px;">Turmas</h3>
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <input type="text" id="novaTurmaNome" placeholder="Ex: 6º Ano A">
+                        <button class="btn-secondary" onclick="adicionarCadastro('turma')">+</button>
+                    </div>
+                    <ul id="listaCadTurmas" style="list-style: none; padding: 0;"></ul>
+                </div>
+
+                <div class="step-content active" style="padding: 15px;">
+                    <h3 style="color: var(--primary-color); margin-bottom: 10px;">Disciplinas</h3>
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <input type="text" id="novaDisciplinaNome" placeholder="Ex: Matemática">
+                        <button class="btn-secondary" onclick="adicionarCadastro('disciplina')">+</button>
+                    </div>
+                    <ul id="listaCadDisciplinas" style="list-style: none; padding: 0;"></ul>
+                </div>
+
+                <div class="step-content active" style="padding: 15px;">
+                    <h3 style="color: var(--primary-color); margin-bottom: 10px;">Professores</h3>
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <input type="text" id="novoProfessorNome" placeholder="Ex: Prof. Carlos">
+                        <button class="btn-secondary" onclick="adicionarCadastro('professor')">+</button>
+                    </div>
+                    <ul id="listaCadProfessores" style="list-style: none; padding: 0;"></ul>
+                </div>
+            </div>
         </div>
 
-        <div id="step1" class="step-content active">
-            <h2>Configuração do Cenário</h2>
-            <div class="form-group">
-                <label for="nomeCenario">Nome do Cenário</label>
-                <input type="text" id="nomeCenario" placeholder="Ex: Grade Padrão Fundamental II">
+        <div id="aba-grade" style="display: none;">
+            
+            <div class="stepper">
+                <div class="step-indicator active" id="ind-1">1. Grade de Horários</div>
+                <div class="step-indicator" id="ind-2">2. Turmas</div>
+                <div class="step-indicator" id="ind-3">3. Disciplinas da Turma</div>
+                <div class="step-indicator" id="ind-4">4. Disponibilidade</div>
             </div>
 
-            <div class="form-group mt-20">
-                <label>Dias da Semana de Operação</label>
-                <div class="checkbox-group">
-                    <label><input type="checkbox" name="dias" value="1" checked> Segunda-feira</label>
-                    <label><input type="checkbox" name="dias" value="2" checked> Terça-feira</label>
-                    <label><input type="checkbox" name="dias" value="3" checked> Quarta-feira</label>
-                    <label><input type="checkbox" name="dias" value="4" checked> Quinta-feira</label>
-                    <label><input type="checkbox" name="dias" value="5" checked> Sexta-feira</label>
+            <div id="step1" class="step-content active">
+                <h2>Configuração do Cenário</h2>
+                <div class="form-group">
+                    <label for="nomeCenario">Nome do Cenário</label>
+                    <input type="text" id="nomeCenario" placeholder="Ex: Grade Padrão 2026">
+                </div>
+
+                <div class="form-group mt-20">
+                    <label>Dias da Semana de Operação</label>
+                    <div class="checkbox-group">
+                        <label><input type="checkbox" name="dias" value="1" checked> Segunda-feira</label>
+                        <label><input type="checkbox" name="dias" value="2" checked> Terça-feira</label>
+                        <label><input type="checkbox" name="dias" value="3" checked> Quarta-feira</label>
+                        <label><input type="checkbox" name="dias" value="4" checked> Quinta-feira</label>
+                        <label><input type="checkbox" name="dias" value="5" checked> Sexta-feira</label>
+                    </div>
+                </div>
+
+                <div class="form-group mt-20">
+                    <label>Períodos (Horários de Aula)</label>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Ordem</th>
+                                <th>Horário de Início</th>
+                                <th>Horário de Término</th>
+                            </tr>
+                        </thead>
+                        <tbody id="listaPeriodos">
+                        </tbody>
+                    </table>
+                    <button class="btn-outline mt-20" onclick="adicionarPeriodo()">+ Adicionar Período</button>
+                </div>
+
+                <div class="actions right mt-20">
+                    <button class="btn-primary" onclick="salvarPasso1()">Avançar</button>
                 </div>
             </div>
 
-            <div class="form-group mt-20">
-                <label>Períodos (Horários de Aula)</label>
+            <div id="step2" class="step-content">
+                <h2>Seleção de Turmas</h2>
+                <div class="actions right">
+                    <button class="btn-secondary" onclick="abrirModalTurmas()">+ Nova Turma</button>
+                </div>
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>Ordem</th>
-                            <th>Horário de Início</th>
-                            <th>Horário de Término</th>
+                            <th>Turma</th>
+                            <th>Ações</th>
                         </tr>
                     </thead>
-                    <tbody id="listaPeriodos">
-                        </tbody>
+                    <tbody id="tabelaTurmasCenario">
+                        <tr><td colspan="2" class="empty-state">Nenhum registro encontrado</td></tr>
+                    </tbody>
                 </table>
-                <button class="btn-outline mt-20" onclick="adicionarPeriodo()">+ Adicionar Período</button>
+                
+                <p id="msgValidacaoTurma" class="error-text" style="display: none; margin-top: 10px;">
+                    *Por favor, adicione pelo menos 1(uma) turma para continuar
+                </p>
+
+                <div class="actions between mt-20">
+                    <button class="btn-outline" onclick="prevStep(1)">Voltar</button>
+                    <button class="btn-primary" onclick="salvarPasso2()">Avançar</button>
+                </div>
             </div>
 
-            <div class="actions right mt-20">
-                <button class="btn-primary" onclick="salvarPasso1()">Avançar</button>
-            </div>
-        </div>
-
-<div id="step2" class="step-content">
-            <h2>Seleção de Turmas</h2>
-            <div class="actions right">
-                <button class="btn-secondary" onclick="abrirModalTurmas()">+ Nova Turma</button>
-            </div>
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Turma</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="tabelaTurmasCenario">
-                    <tr><td colspan="2" class="empty-state">Nenhum registro encontrado</td></tr>
-                </tbody>
-            </table>
-            
-            <p id="msgValidacaoTurma" class="error-text" style="display: none; margin-top: 10px;">
-                *Por favor, adicione pelo menos 1(uma) turma para continuar
-            </p>
-
-            <div class="actions between mt-20">
-                <button class="btn-outline" onclick="prevStep(1)">Voltar</button>
-                <button class="btn-primary" onclick="salvarPasso2()">Avançar</button>
-            </div>
-        </div>
-
-        <div id="modalTurmas" class="modal-container">
-            <div class="modal-box">
-                <h3>Vincular Turma ao Cenário</h3>
-                <div class="form-group mt-20">
-                    <label for="selectTurmasDisponiveis">Selecione a Turma</label>
-                    <select id="selectTurmasDisponiveis">
+            <div id="modalTurmas" class="modal-container">
+                <div class="modal-box">
+                    <h3>Vincular Turma ao Cenário</h3>
+                    <div class="form-group mt-20">
+                        <label for="selectTurmasDisponiveis">Selecione a Turma</label>
+                        <select id="selectTurmasDisponiveis">
                         </select>
-                </div>
-                <div class="actions right mt-20" style="gap: 10px;">
-                    <button class="btn-outline" onclick="fecharModalTurmas()">Cancelar</button>
-                    <button class="btn-primary" onclick="confirmarInclusaoTurma()">Confirmar</button>
+                    </div>
+                    <div class="actions right mt-20" style="gap: 10px;">
+                        <button class="btn-outline" onclick="fecharModalTurmas()">Cancelar</button>
+                        <button class="btn-primary" onclick="confirmarInclusaoTurma()">Confirmar</button>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div id="step3" class="step-content">
-            <h2>Matriz Curricular</h2>
-            
-            <div class="form-grid" style="background: var(--bg-light); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color);">
-                <div class="form-group">
-                    <label>Turma</label>
-                    <select id="matrizTurma"><option value="">Selecione...</option></select>
+            <div id="step3" class="step-content">
+                <h2>Matriz Curricular</h2>
+                
+                <div class="form-grid" style="background: var(--bg-light); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <div class="form-group">
+                        <label>Turma</label>
+                        <select id="matrizTurma"><option value="">Selecione...</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Disciplina</label>
+                        <select id="matrizDisciplina"><option value="">Selecione...</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Professor</label>
+                        <select id="matrizProfessor"><option value="">Selecione...</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label title="Quantidade total de aulas na semana">C.H. Semanal</label>
+                        <input type="number" id="matrizCarga" min="1" value="5">
+                    </div>
+                    <div class="form-group">
+                        <label title="Máximo de aulas dessa matéria no mesmo dia">Máx. Dia</label>
+                        <input type="number" id="matrizMaxDia" min="1" value="2">
+                    </div>
+                    <div class="form-group">
+                        <label>Geminadas?</label>
+                        <select id="matrizGeminada">
+                            <option value="1">Não (Aulas Simples)</option>
+                            <option value="2">Sim (Aulas Duplas)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="display: flex; align-items: flex-end;">
+                        <button class="btn-secondary" onclick="adicionarLinhaMatriz()" style="width: 100%;">+ Adicionar</button>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Disciplina</label>
-                    <select id="matrizDisciplina"><option value="">Selecione...</option></select>
+
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Turma</th>
+                            <th>Disciplina</th>
+                            <th>Professor</th>
+                            <th>C.H.</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaMatriz">
+                        <tr><td colspan="5" class="empty-state">Nenhuma disciplina vinculada</td></tr>
+                    </tbody>
+                </table>
+
+                <p id="msgValidacaoMatriz" class="error-text" style="display: none; margin-top: 10px;">
+                    *Adicione pelo menos uma regra na matriz para continuar.
+                </p>
+
+                <div class="actions between mt-20">
+                    <button class="btn-outline" onclick="prevStep(2)">Voltar</button>
+                    <button class="btn-primary" onclick="salvarPasso3()">Avançar</button>
                 </div>
+            </div>
+
+            <div id="step4" class="step-content">
+                <h2>Disponibilidade dos Professores</h2>
+                <p style="margin-bottom: 15px; color: var(--text-light);">Clique nos horários para bloquear a agenda do professor (Folga, HTPC, etc).</p>
+                
                 <div class="form-group">
-                    <label>Professor</label>
-                    <select id="matrizProfessor"><option value="">Selecione...</option></select>
-                </div>
-                <div class="form-group">
-                    <label title="Quantidade total de aulas na semana">C.H. Semanal</label>
-                    <input type="number" id="matrizCarga" min="1" value="5">
-                </div>
-                <div class="form-group">
-                    <label title="Máximo de aulas dessa matéria no mesmo dia">Máx. Dia</label>
-                    <input type="number" id="matrizMaxDia" min="1" value="2">
-                </div>
-                <div class="form-group">
-                    <label>Geminadas?</label>
-                    <select id="matrizGeminada">
-                        <option value="1">Não (Aulas Simples)</option>
-                        <option value="2">Sim (Aulas Duplas)</option>
+                    <label>Selecione o Professor</label>
+                    <select id="selectProfDisponibilidade" onchange="mudarProfessorDisponibilidade()">
                     </select>
                 </div>
-                <div class="form-group" style="display: flex; align-items: flex-end;">
-                    <button class="btn-secondary" onclick="adicionarLinhaMatriz()" style="width: 100%;">+ Adicionar</button>
+                
+                <div id="containerGradeDisponibilidade" style="overflow-x: auto; margin-top: 20px;">
+                </div>
+                
+                <div class="actions between mt-20">
+                    <button class="btn-outline" onclick="prevStep(3)">Voltar</button>
+                    <button class="btn-success" id="btnFinalizar" onclick="gerarGradeFinal()">Finalizar e Gerar Grade</button>
                 </div>
             </div>
 
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Turma</th>
-                        <th>Disciplina</th>
-                        <th>Professor</th>
-                        <th>C.H.</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="tabelaMatriz">
-                    <tr><td colspan="5" class="empty-state">Nenhuma disciplina vinculada</td></tr>
-                </tbody>
-            </table>
-
-            <p id="msgValidacaoMatriz" class="error-text" style="display: none; margin-top: 10px;">
-                *Adicione pelo menos uma regra na matriz para continuar.
-            </p>
-
-            <div class="actions between mt-20">
-                <button class="btn-outline" onclick="prevStep(2)">Voltar</button>
-                <button class="btn-primary" onclick="salvarPasso3()">Avançar</button>
-            </div>
-        </div>
-
-       <div id="step4" class="step-content">
-            <h2>Disponibilidade dos Professores</h2>
-            <p style="margin-bottom: 15px; color: var(--text-light);">Clique nos horários para bloquear a agenda do professor (Folga, HTPC, etc).</p>
-            
-            <div class="form-group">
-                <label>Selecione o Professor</label>
-                <select id="selectProfDisponibilidade" onchange="mudarProfessorDisponibilidade()">
-                    </select>
-            </div>
-            
-            <div id="containerGradeDisponibilidade" style="overflow-x: auto; margin-top: 20px;">
-                </div>
-            
-            <div class="actions between mt-20">
-                <button class="btn-outline" onclick="prevStep(3)">Voltar</button>
-                <button class="btn-success" id="btnFinalizar" onclick="gerarGradeFinal()">Finalizar e Gerar Grade</button>
-            </div>
-        </div>
-
-        <div id="step5" class="step-content">
-            <h2>Grade Gerada com Sucesso! 🎉</h2>
-            <p style="color: var(--text-light); margin-bottom: 20px;">Abaixo está a distribuição otimizada das suas aulas.</p>
-            
-            <div id="tabelasResultado">
-                </div>
-            
-            <div class="actions between mt-20">
-                <button class="btn-outline" onclick="location.reload()">🔄 Criar Nova Grade</button>
-                <button class="btn-primary" onclick="window.print()">🖨️ Imprimir Grade</button>
-            </div>
-        </div>
-        
-    </main>
+            <div id="step5" class="step-content">
+                <h2>Grade Gerada com Sucesso! 🎉</h2>
+                <p style="color: var(--text-light); margin-bottom: 20px;">Abaixo está a distribuição otimizada das
 
     <footer class="main-footer">
         <p>Desenvolvido por Vinicius A. de Souza</p>
