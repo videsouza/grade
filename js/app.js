@@ -103,20 +103,90 @@ function salvarPasso1() {
 // 3. LÓGICA DA TELA 2 (TURMAS)
 // ============================================================================
 
-// Simulação do Banco de Dados (Secretaria)
-const bancoTurmasMock = [
-    { id: 101, nome: "6º Ano A (Manhã)" },
-    { id: 102, nome: "6º Ano B (Manhã)" },
-    { id: 103, nome: "7º Ano A (Manhã)" },
-    { id: 104, nome: "8º Ano A (Tarde)" },
-    { id: 105, nome: "9º Ano A (Tarde)" }
-];
+// ============================================================================
+// SISTEMA DE CADASTROS DINÂMICOS (Substituindo os Mocks)
+// ============================================================================
+
+// Carrega os dados salvos no navegador ou inicia arrays vazios
+let bancoTurmas = JSON.parse(localStorage.getItem('bancoTurmas')) || [];
+let bancoDisciplinas = JSON.parse(localStorage.getItem('bancoDisciplinas')) || [];
+let bancoProfessores = JSON.parse(localStorage.getItem('bancoProfessores')) || [];
+
+function gerarIdUnico() {
+    return Math.floor(Math.random() * 1000000);
+}
+
+function salvarCadastrosNoNavegador() {
+    localStorage.setItem('bancoTurmas', JSON.stringify(bancoTurmas));
+    localStorage.setItem('bancoDisciplinas', JSON.stringify(bancoDisciplinas));
+    localStorage.setItem('bancoProfessores', JSON.stringify(bancoProfessores));
+}
+
+function adicionarCadastro(tipo) {
+    let input, arrayDestino, ulDestino;
+
+    if (tipo === 'turma') {
+        input = document.getElementById('novaTurmaNome');
+        arrayDestino = bancoTurmas;
+    } else if (tipo === 'disciplina') {
+        input = document.getElementById('novaDisciplinaNome');
+        arrayDestino = bancoDisciplinas;
+    } else if (tipo === 'professor') {
+        input = document.getElementById('novoProfessorNome');
+        arrayDestino = bancoProfessores;
+    }
+
+    const nome = input.value.trim();
+    if (!nome) return;
+
+    arrayDestino.push({ id: gerarIdUnico(), nome: nome });
+    input.value = ""; // Limpa o campo
+    
+    salvarCadastrosNoNavegador();
+    renderizarListasDeCadastro();
+}
+
+function removerCadastro(tipo, id) {
+    if (tipo === 'turma') bancoTurmas = bancoTurmas.filter(i => i.id !== id);
+    if (tipo === 'disciplina') bancoDisciplinas = bancoDisciplinas.filter(i => i.id !== id);
+    if (tipo === 'professor') bancoProfessores = bancoProfessores.filter(i => i.id !== id);
+    
+    salvarCadastrosNoNavegador();
+    renderizarListasDeCadastro();
+}
+
+function renderizarListasDeCadastro() {
+    const ulTurmas = document.getElementById('listaCadTurmas');
+    const ulDisc = document.getElementById('listaCadDisciplinas');
+    const ulProf = document.getElementById('listaCadProfessores');
+
+    if(!ulTurmas || !ulDisc || !ulProf) return; // Evita erro se a tela não estiver carregada
+
+    ulTurmas.innerHTML = bancoTurmas.map(i => `<li style="display:flex; justify-content:space-between; margin-bottom:5px; border-bottom:1px solid #ddd; padding-bottom:5px;">${i.nome} <span style="color:red; cursor:pointer;" onclick="removerCadastro('turma', ${i.id})">✖</span></li>`).join('');
+    ulDisc.innerHTML = bancoDisciplinas.map(i => `<li style="display:flex; justify-content:space-between; margin-bottom:5px; border-bottom:1px solid #ddd; padding-bottom:5px;">${i.nome} <span style="color:red; cursor:pointer;" onclick="removerCadastro('disciplina', ${i.id})">✖</span></li>`).join('');
+    ulProf.innerHTML = bancoProfessores.map(i => `<li style="display:flex; justify-content:space-between; margin-bottom:5px; border-bottom:1px solid #ddd; padding-bottom:5px;">${i.nome} <span style="color:red; cursor:pointer;" onclick="removerCadastro('professor', ${i.id})">✖</span></li>`).join('');
+}
+
+// Controle das Abas Principais
+function mostrarAba(aba) {
+    if (aba === 'cadastros') {
+        document.getElementById('aba-cadastros').style.display = 'block';
+        document.getElementById('aba-grade').style.display = 'none';
+        renderizarListasDeCadastro();
+    } else {
+        document.getElementById('aba-cadastros').style.display = 'none';
+        document.getElementById('aba-grade').style.display = 'block';
+    }
+}
+
+// Inicia as listas assim que a página abre
+window.addEventListener('DOMContentLoaded', renderizarListasDeCadastro);
 
 function abrirModalTurmas() {
     const select = document.getElementById('selectTurmasDisponiveis');
     select.innerHTML = ''; 
     
-    const filtradas = bancoTurmasMock.filter(bt => !estadoGlobal.turmas_selecionadas.includes(bt.id));
+    const filtradas = bancoTurmas.filter(bt => !estadoGlobal.turmas_selecionadas.includes(bt.id));
     
     if (filtradas.length === 0) {
         select.innerHTML = '<option value="">Todas as turmas já foram vinculadas</option>';
@@ -165,7 +235,7 @@ function renderizarTabelaTurmas() {
     msgValidacao.style.display = 'none'; 
 
     estadoGlobal.turmas_selecionadas.forEach(id => {
-        const dadosTurma = bancoTurmasMock.find(bt => bt.id === id);
+        const dadosTurma = bancoTurmas.find(bt => bt.id === id);
         if (dadosTurma) {
             tbody.innerHTML += `
                 <tr>
@@ -196,20 +266,7 @@ function salvarPasso2() {
 // 3.5 LÓGICA DA TELA 3 (MATRIZ CURRICULAR)
 // ============================================================================
 
-// Simulação do Banco de Dados
-const bancoDisciplinasMock = [
-    { id: 1, nome: "Matemática" },
-    { id: 2, nome: "Língua Portuguesa" },
-    { id: 3, nome: "História" },
-    { id: 4, nome: "Geografia" },
-    { id: 5, nome: "Ciências" }
-];
 
-const bancoProfessoresMock = [
-    { id: 10, nome: "Prof. Carlos (Mat/Cie)" },
-    { id: 11, nome: "Profa. Ana (Port)" },
-    { id: 12, nome: "Prof. Roberto (Hist/Geo)" }
-];
 
 let contadorIdMatriz = 0; // Para gerar um ID único para cada linha adicionada
 
@@ -219,21 +276,21 @@ function carregarSelectsMatriz() {
     const selectTurma = document.getElementById('matrizTurma');
     selectTurma.innerHTML = '<option value="">Selecione...</option>';
     estadoGlobal.turmas_selecionadas.forEach(id => {
-        const turma = bancoTurmasMock.find(t => t.id === id);
+        const turma = bancoTurmas.find(t => t.id === id);
         if (turma) selectTurma.innerHTML += `<option value="${turma.id}">${turma.nome}</option>`;
     });
 
     // 2. Carrega as Disciplinas
     const selectDisc = document.getElementById('matrizDisciplina');
     selectDisc.innerHTML = '<option value="">Selecione...</option>';
-    bancoDisciplinasMock.forEach(d => {
+    bancoDisciplinas.forEach(d => {
         selectDisc.innerHTML += `<option value="${d.id}">${d.nome}</option>`;
     });
 
     // 3. Carrega os Professores
     const selectProf = document.getElementById('matrizProfessor');
     selectProf.innerHTML = '<option value="">Selecione...</option>';
-    bancoProfessoresMock.forEach(p => {
+    bancoProfessores.forEach(p => {
         selectProf.innerHTML += `<option value="${p.id}">${p.nome}</option>`;
     });
 }
@@ -289,9 +346,9 @@ function renderizarTabelaMatriz() {
     msgValidacao.style.display = 'none';
 
     estadoGlobal.matrizes_curriculares.forEach(regra => {
-        const turma = bancoTurmasMock.find(t => t.id === regra.turma_id)?.nome || "Desconhecida";
-        const disc = bancoDisciplinasMock.find(d => d.id === regra.disciplina_id)?.nome || "Desconhecida";
-        const prof = bancoProfessoresMock.find(p => p.id === regra.professor_id)?.nome || "Desconhecido";
+        const turma = bancoTurmas.find(t => t.id === regra.turma_id)?.nome || "Desconhecida";
+        const disc = bancoDisciplinas.find(d => d.id === regra.disciplina_id)?.nome || "Desconhecida";
+        const prof = bancoProfessores.find(p => p.id === regra.professor_id)?.nome || "Desconhecido";
 
         tbody.innerHTML += `
             <tr>
@@ -343,7 +400,7 @@ function prepararTela4() {
     }
 
     profsNaMatriz.forEach(id => {
-        const prof = bancoProfessoresMock.find(p => p.id === id);
+        const prof = bancoProfessores.find(p => p.id === id);
         if (prof) select.innerHTML += `<option value="${prof.id}">${prof.nome}</option>`;
     });
 
@@ -429,7 +486,7 @@ function renderizarGradePronta(gradeFinal) {
 
     // Para cada turma, desenhamos uma tabela
     turmasIds.forEach(tId => {
-        const turmaNome = bancoTurmasMock.find(t => t.id === tId)?.nome || `Turma ${tId}`;
+        const turmaNome = bancoTurmas.find(t => t.id === tId)?.nome || `Turma ${tId}`;
         
         let html = `<h3 style="margin-top: 30px; color: var(--primary-color); border-bottom: 2px solid var(--border-color); padding-bottom: 10px;">${turmaNome}</h3>`;
         html += '<table class="data-table tabela-interativa" style="margin-top: 15px;"><thead><tr><th>Horário</th>';
@@ -447,8 +504,8 @@ function renderizarGradePronta(gradeFinal) {
                 const aula = gradeFinal.find(a => a.turma_id === tId && a.dia === dia && a.periodo === periodo.ordem);
                 
                 if (aula) {
-                    const discNome = bancoDisciplinasMock.find(d => d.id === aula.disciplina_id)?.nome || 'Disciplina';
-                    const profNome = bancoProfessoresMock.find(p => p.id === aula.professor_id)?.nome || 'Professor';
+                    const discNome = bancoDisciplinas.find(d => d.id === aula.disciplina_id)?.nome || 'Disciplina';
+                    const profNome = bancoProfessores.find(p => p.id === aula.professor_id)?.nome || 'Professor';
                     
                     html += `<td style="background-color: #e3f2fd; border: 1px solid #90caf9;">
                         <strong style="color: #0d47a1;">${discNome}</strong><br>
