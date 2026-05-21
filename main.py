@@ -8,6 +8,38 @@ import os
 
 app = FastAPI()
 
+import sqlite3
+from pydantic import BaseModel
+
+# ============================================================================
+# 1. CONFIGURAÇÃO DO BANCO DE DADOS (SQLite)
+# ============================================================================
+
+def init_db():
+    # Conecta (ou cria se não existir) o arquivo do banco de dados
+    conn = sqlite3.connect("banco_escola.db")
+    cursor = conn.cursor()
+    
+    # Cria as tabelas caso seja a primeira vez rodando
+    cursor.execute("CREATE TABLE IF NOT EXISTS turmas (id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS disciplinas (id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS professores (id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT)")
+    
+    conn.commit()
+    conn.close()
+
+# Roda a inicialização assim que o servidor subir
+init_db()
+
+# Modelo de dados que o FastAPI vai esperar receber do Frontend
+class ItemCadastro(BaseModel):
+    nome: str
+
+def get_db_connection():
+    conn = sqlite3.connect("banco_escola.db")
+    conn.row_factory = sqlite3.Row # Permite acessar as colunas pelo nome
+    return conn
+
 # 1. SERVIR ARQUIVOS ESTÁTICOS (JS e CSS)
 # Isso permite que seu HTML encontre seus arquivos de script e estilo
 app.mount("/js", StaticFiles(directory="js"), name="js")
@@ -26,6 +58,64 @@ class PayloadGrade(BaseModel):
     turmas_selecionadas: list
     matrizes_curriculares: list
     disponibilidades_professores: list
+
+# ============================================================================
+# 2. ROTAS DE CADASTRO BÁSICO (API)
+# ============================================================================
+
+# --- TURMAS ---
+@app.get("/api/turmas")
+def listar_turmas():
+    conn = get_db_connection()
+    turmas = conn.execute("SELECT id, nome FROM turmas").fetchall()
+    conn.close()
+    return [{"id": t["id"], "nome": t["nome"]} for t in turmas]
+
+@app.post("/api/turmas")
+def criar_turma(item: ItemCadastro):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO turmas (nome) VALUES (?)", (item.nome,))
+    conn.commit()
+    novo_id = cursor.lastrowid
+    conn.close()
+    return {"id": novo_id, "nome": item.nome}
+
+# --- DISCIPLINAS ---
+@app.get("/api/disciplinas")
+def listar_disciplinas():
+    conn = get_db_connection()
+    disciplinas = conn.execute("SELECT id, nome FROM disciplinas").fetchall()
+    conn.close()
+    return [{"id": d["id"], "nome": d["nome"]} for d in disciplinas]
+
+@app.post("/api/disciplinas")
+def criar_disciplina(item: ItemCadastro):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO disciplinas (nome) VALUES (?)", (item.nome,))
+    conn.commit()
+    novo_id = cursor.lastrowid
+    conn.close()
+    return {"id": novo_id, "nome": item.nome}
+
+# --- PROFESSORES ---
+@app.get("/api/professores")
+def listar_professores():
+    conn = get_db_connection()
+    professores = conn.execute("SELECT id, nome FROM professores").fetchall()
+    conn.close()
+    return [{"id": p["id"], "nome": p["nome"]} for p in professores]
+
+@app.post("/api/professores")
+def criar_professor(item: ItemCadastro):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO professores (nome) VALUES (?)", (item.nome,))
+    conn.commit()
+    novo_id = cursor.lastrowid
+    conn.close()
+    return {"id": novo_id, "nome": item.nome}
 
 @app.post("/api/gerar-grade")
 def gerar_grade(dados: PayloadGrade):
