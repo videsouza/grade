@@ -1,10 +1,14 @@
-from fastapi import FastAPI
+import jwt
+from datetime import datetime, timedelta
+from fastapi import Depends, HTTPException
 from pydantic import BaseModel
+from fastapi import FastAPI
 from ortools.sat.python import cp_model
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os
+from fastapi.security import OAuth2PasswordBearer
 
 app = FastAPI()
 
@@ -75,6 +79,54 @@ def init_db():
 
 # Roda a inicialização assim que o servidor subir
 init_db()
+
+# ============================================================================
+# 1.5. SISTEMA DE AUTENTICAÇÃO E SEGURANÇA
+# ============================================================================
+
+SECRET_KEY = "chave_mestra_escola_secreta"
+ALGORITHM = "HS256"
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/login")
+
+class LoginData(BaseModel):
+    email: str
+    senha: str
+
+# --- A ROTA DE LOGIN (Gera o Crachá) ---
+@app.post("/api/login")
+def fazer_login(dados: LoginData):
+    conn = get_db_connection()
+    usuario = conn.execute("SELECT id, escola_id, senha FROM usuarios WHERE email = ?", (dados.email,)).fetchone()
+    conn.close()
+
+    if not usuario or usuario["senha"] != dados.senha:
+        raise HTTPException(status_code=401, detail="Email ou senha incorretos")
+
+    expiracao = datetime.utcnow() + timedelta(hours=8)
+    payload = {
+        "sub": usuario["id"],
+        "escola_id": usuario["escola_id"],
+        "exp": expiracao
+    }
+    
+    token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+    return {"access_token": token, "token_type": "bearer"}
+
+# --- A CATRACA DE SEGURANÇA (Lê o Crachá) ---
+def obter_escola_atual(token: str = Depends(oauth2_scheme)):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        escola_id = payload.get("escola_id")
+        
+        if escola_id is None:
+            raise HTTPException(status_code=401, detail="Token inválido")
+            
+        return escola_id
+        
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expirado. Faça login novamente.")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Credenciais inválidas")
 
 # Modelo de dados que o FastAPI vai esperar receber do Frontend
 class ItemCadastro(BaseModel):
