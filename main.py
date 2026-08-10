@@ -380,3 +380,26 @@ def gerar_grade(dados: PayloadGrade):
             "status": "erro", 
             "mensagem": "Inviável. O algoritmo não conseguiu encontrar uma combinação possível com as regras atuais."
         }
+
+# ============================================================================
+# 2. ROTAS DO FRONTEND (Entregando as páginas visuais)
+# ============================================================================
+
+# Libera o acesso às pastas onde estão seus estilos e scripts
+app.mount("/css", StaticFiles(directory="css"), name="css")
+app.mount("/js", StaticFiles(directory="js"), name="js")
+
+# Rota para a tela principal
+@app.get("/")
+def pagina_principal():
+    return FileResponse("index.html")
+
+# Para caso a pessoa digite /index.html na URL
+@app.get("/index.html")
+def pagina_index():
+    return FileResponse("index.html")
+
+# Rota para a tela de login
+@app.get("/login.html")
+def pagina_login():
+    return FileResponse("login.html")
