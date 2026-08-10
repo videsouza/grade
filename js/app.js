@@ -555,3 +555,44 @@ function mostrarNotificacao(mensagem) {
         toast.classList.remove("show");
     }, 3000);
 }
+
+// ============================================================================
+// SISTEMA DE SALVAMENTO DE ESTADO (Rascunho)
+// ============================================================================
+
+async function salvarEstadoAtual() {
+    const btn = document.getElementById("btnSalvarEstado");
+    const textoOriginal = btn.innerHTML;
+    
+    // Altera o visual do botão para mostrar que está processando
+    btn.innerHTML = "⏳ Salvando...";
+    btn.disabled = true;
+    btn.style.opacity = "0.7";
+
+    try {
+        // Aqui é onde capturamos o "Estado Atual" do sistema.
+        // Exemplo: pegamos o cenário, as turmas selecionadas e a matriz montada.
+        const estadoDoSistema = {
+            cenario: document.getElementById('nomeCenario') ? document.getElementById('nomeCenario').value : '',
+            // No futuro, capturaremos as linhas da tabela de matriz aqui
+            dataDaUltimaModificacao: new Date().toISOString()
+        };
+
+        console.log("Enviando estado para o servidor...", estadoDoSistema);
+
+        // Simulando o tempo de ida e volta ao servidor Python (1.5 segundos)
+        // Quando criarmos a rota no Python, substituiremos isso por um fetch() real
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
+        // Chama a notificação (Toast) que criamos anteriormente
+        mostrarNotificacao("Progresso salvo com sucesso!");
+
+    } catch (error) {
+        alert("Erro ao tentar salvar o progresso.");
+    } finally {
+        // Devolve o botão ao estado normal
+        btn.innerHTML = textoOriginal;
+        btn.disabled = false;
+        btn.style.opacity = "1";
+    }
+}
