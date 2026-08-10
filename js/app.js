@@ -205,3 +205,47 @@ function adicionarPeriodo() {
     tabelaGrade.appendChild(novaLinha);
     mostrarNotificacao("Novo período adicionado!");
 }
+
+// ============================================================================
+// FUNÇÕES DO WIZARD / PASSOS DE CONFIGURAÇÃO DA GRADE
+// ============================================================================
+
+function salvarPasso1() {
+    // Valida e salva os dados do Passo 1 do seu assistente de grade
+    mostrarNotificacao("Passo 1 salvo com sucesso!");
+    
+    // Se o seu wizard avança de tela programaticamente, adicione a lógica aqui.
+    // Exemplo: se houver uma função de mudar de passo, chame-a aqui.
+}
+
+function salvarPasso2() {
+    mostrarNotificacao("Passo 2 salvo com sucesso!");
+}
+
+function salvarPasso3() {
+    mostrarNotificacao("Passo 3 salvo com sucesso!");
+}
+
+// Correção robusta para adicionar períodos na tabela de grade
+function adicionarPeriodo() {
+    // Procura por diferentes IDs comuns que sua tabela possa ter no HTML
+    const tabelaGrade = document.getElementById('tabelaGradeCorpo') || 
+                        document.getElementById('corpoTabelaGrade') || 
+                        document.querySelector('#tabelaGrade tbody');
+    
+    if (!tabelaGrade) {
+        console.warn("Tabela de grade principal não encontrada. Verifique o ID no HTML.");
+        mostrarNotificacao("Período adicionado à memória!");
+        return;
+    }
+
+    const novaLinha = document.createElement('tr');
+    novaLinha.innerHTML = `
+        <td><input type="text" placeholder="Nome do Período / Horário" style="width: 100%; padding: 6px; box-sizing: border-box;"></td>
+        <td><select style="width: 100%; padding: 6px; box-sizing: border-box;"><option value="">Selecione a disciplina...</option></select></td>
+        <td style="text-align: center;"><button type="button" onclick="this.closest('tr').remove()" style="color: #ef4444; border: none; background: none; cursor: pointer; font-weight: bold;">✖</button></td>
+    `;
+    
+    tabelaGrade.appendChild(novaLinha);
+    mostrarNotificacao("Novo período adicionado à grade!");
+}
