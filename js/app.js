@@ -182,6 +182,7 @@ async function adicionarCadastro(tipo) {
         if (response.ok) {
             await carregarCadastrosDoBanco();
             input.value = ""; 
+            mostrarNotificacao("Registro salvo com sucesso!");
         } else {
             alert("Erro ao salvar no servidor.");
         }
