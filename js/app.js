@@ -540,3 +540,17 @@ async function gerarGradeFinal() {
         btn.disabled = false;
     }
 }
+
+// Função para exibir o Toast de Sucesso
+function mostrarNotificacao(mensagem) {
+    const toast = document.getElementById("toast-container");
+    const msg = document.getElementById("toast-msg");
+    
+    msg.innerText = mensagem;
+    toast.classList.add("show");
+
+    // Esconde a notificação após 3 segundos
+    setTimeout(function() {
+        toast.classList.remove("show");
+    }, 3000);
+}
