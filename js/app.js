@@ -107,20 +107,46 @@ function salvarPasso1() {
 // SISTEMA DE CADASTROS DINÂMICOS (Conectado ao Banco de Dados Python)
 // ============================================================================
 
+// ============================================================================
+// SISTEMA DE CADASTROS DINÂMICOS (Seguro e com Token JWT)
+// ============================================================================
+
 let bancoTurmas = [];
 let bancoDisciplinas = [];
 let bancoProfessores = [];
 
-// 1. Busca os dados reais do servidor Python quando a página carrega
+// 0. Verifica se o usuário tem o crachá antes de qualquer coisa
+function obterToken() {
+    const token = localStorage.getItem('token_escola');
+    if (!token) {
+        window.location.href = 'login.html'; // Chuta para fora
+        return null;
+    }
+    return token;
+}
+
+// 1. Busca os dados reais mandando o crachá
 async function carregarCadastrosDoBanco() {
+    const token = obterToken();
+    if (!token) return;
+
+    const headersSeguros = { "Authorization": `Bearer ${token}` };
+
     try {
-        const resTurmas = await fetch("/api/turmas");
+        const resTurmas = await fetch("/api/turmas", { headers: headersSeguros });
+        const resDisc = await fetch("/api/disciplinas", { headers: headersSeguros });
+        const resProf = await fetch("/api/professores", { headers: headersSeguros });
+
+        // Se o token expirou ou é inválido, o Python devolve 401
+        if (resTurmas.status === 401) {
+            alert("Sua sessão expirou. Faça login novamente.");
+            localStorage.removeItem('token_escola');
+            window.location.href = 'login.html';
+            return;
+        }
+
         bancoTurmas = await resTurmas.json();
-
-        const resDisc = await fetch("/api/disciplinas");
         bancoDisciplinas = await resDisc.json();
-
-        const resProf = await fetch("/api/professores");
         bancoProfessores = await resProf.json();
 
         renderizarListasDeCadastro();
@@ -129,35 +155,31 @@ async function carregarCadastrosDoBanco() {
     }
 }
 
-// 2. Envia o novo dado para o servidor Python salvar
+// 2. Envia o novo dado mostrando o crachá
 async function adicionarCadastro(tipo) {
-    let input, endpoint;
+    const token = obterToken();
+    if (!token) return;
 
-    if (tipo === 'turma') {
-        input = document.getElementById('novaTurmaNome');
-        endpoint = "/api/turmas";
-    } else if (tipo === 'disciplina') {
-        input = document.getElementById('novaDisciplinaNome');
-        endpoint = "/api/disciplinas";
-    } else if (tipo === 'professor') {
-        input = document.getElementById('novoProfessorNome');
-        endpoint = "/api/professores";
-    }
+    let input, endpoint;
+    if (tipo === 'turma') { input = document.getElementById('novaTurmaNome'); endpoint = "/api/turmas"; } 
+    else if (tipo === 'disciplina') { input = document.getElementById('novaDisciplinaNome'); endpoint = "/api/disciplinas"; } 
+    else if (tipo === 'professor') { input = document.getElementById('novoProfessorNome'); endpoint = "/api/professores"; }
 
     const nome = input.value.trim();
     if (!nome) return;
-
-    input.disabled = true; // Trava o campo enquanto salva
+    input.disabled = true;
 
     try {
         const response = await fetch(endpoint, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { 
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}` // Crachá na requisição!
+            },
             body: JSON.stringify({ nome: nome })
         });
         
         if (response.ok) {
-            // Se salvou com sucesso, busca a lista atualizada do banco
             await carregarCadastrosDoBanco();
             input.value = ""; 
         } else {
@@ -170,12 +192,12 @@ async function adicionarCadastro(tipo) {
     }
 }
 
-// 3. Deleta o dado real no banco
+// 3. Deleta mostrando o crachá
 async function removerCadastro(tipo, id) {
-    // Adicionamos uma confirmação por segurança
-    if (!confirm("Tem certeza que deseja excluir este registro?")) {
-        return;
-    }
+    const token = obterToken();
+    if (!token) return;
+
+    if (!confirm("Tem certeza que deseja excluir este registro?")) return;
 
     let endpoint;
     if (tipo === 'turma') endpoint = `/api/turmas/${id}`;
@@ -184,14 +206,12 @@ async function removerCadastro(tipo, id) {
 
     try {
         const response = await fetch(endpoint, { 
-            method: "DELETE" 
+            method: "DELETE",
+            headers: { "Authorization": `Bearer ${token}` }
         });
         
         if (response.ok) {
-            // Se apagou com sucesso no servidor, busca a lista atualizada
             await carregarCadastrosDoBanco();
-        } else {
-            alert("Erro ao tentar excluir no servidor.");
         }
     } catch (error) {
         alert("Falha de comunicação com a API.");
@@ -210,7 +230,6 @@ function renderizarListasDeCadastro() {
     ulProf.innerHTML = bancoProfessores.map(i => `<li style="display:flex; justify-content:space-between; margin-bottom:5px; border-bottom:1px solid #ddd; padding-bottom:5px;">${i.nome} <span style="color:red; cursor:pointer;" onclick="removerCadastro('professor', ${i.id})">✖</span></li>`).join('');
 }
 
-// Controle das Abas Principais
 function mostrarAba(aba) {
     if (aba === 'cadastros') {
         document.getElementById('aba-cadastros').style.display = 'block';
@@ -222,91 +241,12 @@ function mostrarAba(aba) {
     }
 }
 
-// Quando a página abrir, vai lá no Python buscar os dados
-window.addEventListener('DOMContentLoaded', carregarCadastrosDoBanco);
-
-// Inicia as listas assim que a página abre
-window.addEventListener('DOMContentLoaded', renderizarListasDeCadastro);
-
-function abrirModalTurmas() {
-    const select = document.getElementById('selectTurmasDisponiveis');
-    select.innerHTML = ''; 
-    
-    const filtradas = bancoTurmas.filter(bt => !estadoGlobal.turmas_selecionadas.includes(bt.id));
-    
-    if (filtradas.length === 0) {
-        select.innerHTML = '<option value="">Todas as turmas já foram vinculadas</option>';
-    } else {
-        filtradas.forEach(turma => {
-            select.innerHTML += `<option value="${turma.id}">${turma.nome}</option>`;
-        });
+// A proteção em tempo real: verifica quando a página abre e já busca os dados
+window.addEventListener('DOMContentLoaded', () => {
+    if (obterToken()) {
+        carregarCadastrosDoBanco();
     }
-    
-    document.getElementById('modalTurmas').classList.add('active');
-}
-
-function fecharModalTurmas() {
-    document.getElementById('modalTurmas').classList.remove('active');
-}
-
-function confirmarInclusaoTurma() {
-    const select = document.getElementById('selectTurmasDisponiveis');
-    const idSelecionado = parseInt(select.value);
-    
-    if (!idSelecionado) {
-        fecharModalTurmas();
-        return;
-    }
-
-    estadoGlobal.turmas_selecionadas.push(idSelecionado);
-    fecharModalTurmas();
-    renderizarTabelaTurmas();
-}
-
-function removerTurmaCenario(id) {
-    estadoGlobal.turmas_selecionadas = estadoGlobal.turmas_selecionadas.filter(tId => tId !== id);
-    renderizarTabelaTurmas();
-}
-
-function renderizarTabelaTurmas() {
-    const tbody = document.getElementById('tabelaTurmasCenario');
-    const msgValidacao = document.getElementById('msgValidacaoTurma');
-    tbody.innerHTML = '';
-
-    if (estadoGlobal.turmas_selecionadas.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="2" class="empty-state">Nenhum registro encontrado</td></tr>`;
-        return;
-    }
-
-    msgValidacao.style.display = 'none'; 
-
-    estadoGlobal.turmas_selecionadas.forEach(id => {
-        const dadosTurma = bancoTurmas.find(bt => bt.id === id);
-        if (dadosTurma) {
-            tbody.innerHTML += `
-                <tr>
-                    <td>${dadosTurma.nome}</td>
-                    <td>
-                        <button class="btn-danger-icon" onclick="removerTurmaCenario(${id})">🗑 Excluir</button>
-                    </td>
-                </tr>
-            `;
-        }
-    });
-}
-
-function salvarPasso2() {
-    const msgValidacao = document.getElementById('msgValidacaoTurma');
-    
-    if (estadoGlobal.turmas_selecionadas.length === 0) {
-        msgValidacao.style.display = 'block';
-        return;
-    }
-
-    console.log("Passo 2 Salvo - Turmas vinculadas:", estadoGlobal.turmas_selecionadas);
-    carregarSelectsMatriz();
-    nextStep(3);
-}
+});
 
 // ============================================================================
 // 3.5 LÓGICA DA TELA 3 (MATRIZ CURRICULAR)
