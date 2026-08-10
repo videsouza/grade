@@ -179,3 +179,29 @@ window.addEventListener('DOMContentLoaded', () => {
         carregarCadastrosDoBanco();
     }
 });
+
+// ============================================================================
+// ADICIONAR PERÍODO / LINHA NA GRADE
+// ============================================================================
+
+function adicionarPeriodo() {
+    const tabelaGrade = document.getElementById('tabelaGradeCorpo'); // Ajuste para o ID real da sua tabela de grade no HTML
+    
+    // Se a tabela não existir na aba atual, avisa ou cria uma linha genérica
+    if (!tabelaGrade) {
+        console.warn("Tabela de grade não encontrada na tela atual.");
+        mostrarNotificacao("Função de período acionada!");
+        return;
+    }
+
+    // Cria uma nova linha para o período
+    const novaLinha = document.createElement('tr');
+    novaLinha.innerHTML = `
+        <td><input type="text" placeholder="Novo Período" style="width: 100%; padding: 6px;"></td>
+        <td><select style="width: 100%; padding: 6px;"><option>Selecione...</option></select></td>
+        <td><button type="button" onclick="this.parentElement.parentElement.remove()" style="color: red; border: none; background: none; cursor: pointer;">✖</button></td>
+    `;
+    
+    tabelaGrade.appendChild(novaLinha);
+    mostrarNotificacao("Novo período adicionado!");
+}
