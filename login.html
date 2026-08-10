@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Sistema de Grade Escolar</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Usamos o mesmo estilo base, mas adicionamos um layout centralizado específico para o login -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <style>
+        /* Fundo limpo e tela focada no centro */
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f4f6f9;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* O "Card" de Login */
+        .login-box {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h1 {
+            color: #0d47a1; /* Azul escuro principal */
+            font-size: 24px;
+            margin: 0 0 5px 0;
+        }
+
+        .login-header p {
+            color: #64748b;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        /* Formulário */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #334155;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 15px;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #0d47a1;
+            box-shadow: 0 0 0 3px rgba(13, 71, 161, 0.1);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background-color: #1565c0; /* Botão azul */
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-login:hover {
+            background-color: #0d47a1;
+        }
+
+        .msg-erro {
+            color: #ef4444;
+            background-color: #fef2f2;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            text-align: center;
+            margin-top: 15px;
+            display: none;
+            border: 1px solid #fecaca;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-box">
+        <div class="login-header">
+            <h1>Acesso Restrito</h1>
+            <p>Gerador Otimizado de Grade Escolar</p>
+        </div>
+
+        <form id="formLogin" onsubmit="realizarLogin(event)">
+            <div class="form-group">
+                <label for="email">E-mail</label>
+                <input type="email" id="email" placeholder="admin@escola.com" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="senha">Senha</label>
+                <input type="password" id="senha" placeholder="••••••" required>
+            </div>
+
+            <button type="submit" class="btn-login" id="btnSubmit">Entrar no Sistema</button>
+            <div id="mensagemErro" class="msg-erro"></div>
+        </form>
+    </div>
+
+    <!-- O Cérebro do Login -->
+    <script>
+        async function realizarLogin(event) {
+            event.preventDefault(); // Impede a página de recarregar
+            
+            const email = document.getElementById('email').value;
+            const senha = document.getElementById('senha').value;
+            const btn = document.getElementById('btnSubmit');
+            const msgErro = document.getElementById('mensagemErro');
+
+            btn.innerText = "Autenticando...";
+            btn.disabled = true;
+            msgErro.style.display = 'none';
+
+            try {
+                // Chama a rota que criamos no Python
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, senha: senha })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // A MÁGICA ACONTECE AQUI: Guardamos o crachá no bolso (localStorage)
+                    localStorage.setItem('token_escola', data.access_token);
+                    
+                    // Redirecionamos para o sistema
+                    window.location.href = 'index.html';
+                } else {
+                    msgErro.innerText = "E-mail ou senha incorretos.";
+                    msgErro.style.display = 'block';
+                }
+            } catch (error) {
+                msgErro.innerText = "Erro ao conectar com o servidor.";
+                msgErro.style.display = 'block';
+            } finally {
+                btn.innerText = "Entrar no Sistema";
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
