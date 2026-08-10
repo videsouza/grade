@@ -16,15 +16,60 @@ from pydantic import BaseModel
 # ============================================================================
 
 def init_db():
-    # Conecta (ou cria se não existir) o arquivo do banco de dados
     conn = sqlite3.connect("banco_escola.db")
     cursor = conn.cursor()
     
-    # Cria as tabelas caso seja a primeira vez rodando
-    cursor.execute("CREATE TABLE IF NOT EXISTS turmas (id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT)")
-    cursor.execute("CREATE TABLE IF NOT EXISTS disciplinas (id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT)")
-    cursor.execute("CREATE TABLE IF NOT EXISTS professores (id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT)")
+    # 1. Tabelas de Autenticação (A Base do SaaS)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS escolas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, 
+            nome TEXT
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS usuarios (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, 
+            escola_id INTEGER, 
+            email TEXT UNIQUE, 
+            senha TEXT,
+            FOREIGN KEY(escola_id) REFERENCES escolas(id)
+        )
+    """)
     
+    # 2. Tabelas do Sistema (Agora amarradas a uma escola específica)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS turmas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, 
+            escola_id INTEGER, 
+            nome TEXT,
+            FOREIGN KEY(escola_id) REFERENCES escolas(id)
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS disciplinas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, 
+            escola_id INTEGER, 
+            nome TEXT,
+            FOREIGN KEY(escola_id) REFERENCES escolas(id)
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS professores (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, 
+            escola_id INTEGER, 
+            nome TEXT,
+            FOREIGN KEY(escola_id) REFERENCES escolas(id)
+        )
+    """)
+    
+    # Vamos inserir uma escola e um usuário "Admin" padrão para você conseguir testar o login depois
+    cursor.execute("SELECT COUNT(*) FROM escolas")
+    if cursor.fetchone()[0] == 0:
+        cursor.execute("INSERT INTO escolas (nome) VALUES ('Escola Municipal Padrão')")
+        escola_id = cursor.lastrowid
+        # ATENÇÃO: Em produção usaríamos hash de senha. Para o primeiro teste, vamos salvar em texto puro.
+        cursor.execute("INSERT INTO usuarios (escola_id, email, senha) VALUES (?, ?, ?)", (escola_id, 'admin@escola.com', '123456'))
+
     conn.commit()
     conn.close()
 
