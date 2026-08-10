@@ -15,13 +15,23 @@
         </div>
     </header>
 
-    <nav style="background-color: #e9ecef; border-bottom: 1px solid var(--border-color); padding: 10px 20px;">
-        <div style="max-width: 1000px; margin: 0 auto; display: flex; gap: 15px;">
+<!-- Menu de Navegação do Sistema -->
+    <nav style="background-color: #e9ecef; border-bottom: 1px solid var(--border-color); padding: 10px 20px; display: flex; justify-content: space-between; align-items: center;">
+        
+        <!-- Botões das Abas -->
+        <div style="display: flex; gap: 15px;">
             <button class="btn-primary" onclick="mostrarAba('cadastros')">📋 Cadastros Básicos</button>
             <button class="btn-outline" onclick="mostrarAba('grade')">📅 Gerar Grade</button>
         </div>
-    </nav>
 
+        <!-- Botão de Salvar Estado -->
+        <div>
+            <button id="btnSalvarEstado" class="btn-success" onclick="salvarEstadoAtual()" style="background-color: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s;">
+                💾 Salvar Progresso
+            </button>
+        </div>
+
+    </nav>
     <main class="container">
         
         <div id="aba-cadastros" style="display: block;">
